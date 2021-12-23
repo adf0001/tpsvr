@@ -1,0 +1,49 @@
+<div name='project-list'
+	style='width:10em;position:absolute;left:0px;top:0px;bottom:0px;border-right:1px solid gray;overflow:auto;'>
+	<center>
+		<span style='font-weight:bold;' name='title'>Projects</span>
+		<span name='tool' class='ht-cmd' title='project tools' style='text-decoration:none;display:inline-block;
+			border:1px solid gray;height:1.1em;border-radius:25%;vertical-align:middle;'>
+			•••
+		</span>
+	</center>
+	<div name='list' style='padding:0.5em;'></div>
+	<div style='font-size: 9pt;text-align:right;padding:0.5em;'>count: <i name='list-count'>0</i></div>
+</div>
+<div name='splitter' style='position:absolute;top:0px;bottom:0px;left:10em;width:8px;z-index:1;'></div>
+<div name='top-bar'
+	style='padding-bottom:0.1em;position:absolute;left:10em;top:0px;right:0px;border-bottom:1px solid gray;overflow:auto;'>
+	<div style="font-size:9pt;padding:0em 1em;vertical-align:top;">
+		View
+		<span name="view-type">
+			<label title='test page, click to refresh'><input type=radio value='page' /> page</label>
+			<label title='browse path files, click to refresh'><input type=radio value='browse' /> browse</label>
+			<label title='executing console view, click to refresh'><input type=radio value='console' /> console</label>
+		</span>
+		<span name='operate' style="display:none;">
+			<span style='padding:0px 0.5em;'>|</span>
+			<label title='bundle the test module, and watch code change.'><input type=checkbox name='bundle'>bundle</label>
+			<span name='more' class='ht-cmd' title='more operations' style='text-decoration:none;display:inline-block;
+				border:1px solid gray;height:1.1em;border-radius:25%;vertical-align:text-top;'>
+				•••
+			</span>
+		</span>
+		<span name="browse-tool" style="display:none;">
+			<span style='padding:0px 0.5em;'>|</span>
+			<span class="ht-cmd" name='vscode' title='open with local VsCode'>VsCode</span>
+			<span name="file-exec"></span>
+		</span>
+		<span style='float:right;'>
+			<span name='go-back' title='go back' onclick="history.go(-1);" style="display:none;cursor:pointer;">
+				<img border='0' src='res/arrow-left.png' style="height:1.2em;vertical-align:middle;" />
+			</span>
+			<a style='color:blue;' href="about:blank" target="_blank" name='address-link'
+				title='open in new window'>about:blank</a>
+		</span>
+	</div>
+</div>
+<div style="position:absolute;left:10em;top:1.5em;bottom:0px;right:0px;box-sizing:border-box;">
+	<iframe name="iframe-page" src="about:blank" style="width:100%;height:100%;border:none;"></iframe>
+</div>
+<div name='iframe-mask'
+	style="visibility:hidden;position:absolute;left:10em;top:1.5em;bottom:0px;right:0px;box-sizing:border-box;"></div>

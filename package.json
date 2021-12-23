@@ -1,0 +1,52 @@
+{
+  "name": "tpsvr",
+  "version": "1.0.1",
+  "description": "test page server",
+  "main": "server/tpsvr-main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "test",
+    "http",
+    "server"
+  ],
+  "author": "fwg",
+  "license": "ISC",
+  "bin": {
+    "tpsvr": "bin/cmd.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adf0001/tpsvr.git"
+  },
+  "bugs": {
+    "url": "https://github.com/adf0001/tpsvr/issues"
+  },
+  "homepage": "https://github.com/adf0001/tpsvr#readme",
+  "dependencies": {
+    "argv-config": "^1.0.2",
+    "browser-http-request": "^1.0.6",
+    "browserify-stringify-minimize-css-content": "^1.0.1",
+    "bundle-collapser": "^1.4.0",
+    "callq": "^1.0.7",
+    "delay-set-timeout": "^1.0.1",
+    "easy-http-server": "^1.0.1",
+    "htm-tool": "^1.0.15",
+    "htm-tool-ui": "^1.0.11",
+    "http-request-text": "^1.0.5",
+    "multiple-spawn": "^1.0.14",
+    "response-long-poll-state": "^1.0.4",
+    "response-tool": "^1.0.4",
+    "stringify": "^5.2.0",
+    "supervisor": "^0.12.0",
+    "terser": "^5.10.0",
+    "to-px-by-offset": "^1.0.1",
+    "version-value-set": "^1.0.1",
+    "watchify": "^4.0.0"
+  },
+  "directories": {
+    "lib": "lib"
+  },
+  "devDependencies": {}
+}

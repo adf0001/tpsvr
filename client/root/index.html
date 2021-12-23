@@ -1,0 +1,24 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset='utf-8'>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes" />
+
+	<title>tpsvr</title>
+</head>
+
+<body>
+	<div id="div-fixed" style='position:fixed;left:0px;top:0px;right:0px;bottom:0px;'></div>
+</body>
+
+<script src='./bundle-client.debug.js'></script>
+
+<script>
+	window.onload = function () {
+		var main_view = require("main-view");
+		new main_view.class(document.getElementById("div-fixed"));
+	}
+</script>
+
+</html>

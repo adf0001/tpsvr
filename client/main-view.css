@@ -1,0 +1,5 @@
+.state-bundle:after{
+	content: "b";
+	background: lime;
+	margin-left:0.5em;
+}

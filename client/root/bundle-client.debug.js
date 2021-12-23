@@ -411,7 +411,7 @@ exports.bindElement = bindElement;
 exports.bindElementArray = bindElementArray;
 exports.array = bindElementArray;
 
-},{"dom-document-tool":10,"element-tool":13,"format-error-tool":14,"query-by-name-path":35,"script-tool":36}],6:[function(require,module,exports){
+},{"dom-document-tool":10,"element-tool":13,"format-error-tool":14,"query-by-name-path":36,"script-tool":37}],6:[function(require,module,exports){
 
 // bind-ui @ npm, htm-tool bind-ui module.
 
@@ -588,7 +588,7 @@ module.exports = function (el, obj, config, cb) {
 
 }
 
-},{"add-css-text":3,"bind-element":5,"browser-http-request":7,"callq":8,"element-tool":13,"query-by-name-path":35}],7:[function(require,module,exports){
+},{"add-css-text":3,"bind-element":5,"browser-http-request":7,"callq":8,"element-tool":13,"query-by-name-path":36}],7:[function(require,module,exports){
 
 // browser-http-request @ npm
 // enclose browser XMLHttpRequest for callback function
@@ -655,7 +655,7 @@ var requestText = function (url, methodOrOptions, postData, headers, callback, u
 				}
 				else {
 					var err = Error(xq.status + " " + xq.statusText +
-						(xq.responseText ? ("," + xq.responseText.slice(0, 255)) : ""));
+						(xq.responseText ? (", " + xq.responseText.slice(0, 255)) : ""));
 					for (var i in resData) err[i] = resData[i];
 					callback(err);
 				}
@@ -1648,6 +1648,10 @@ module.exports = ".ht-cmd { \n\tcolor: green; \n\ttext-decoration: underline; \n
 "use strict";
 
 var popup_common = require("./lib/popup-common.js");
+var show_log = require("./lib/show-log.js");
+var radio_group = require("./lib/radio-group.js");
+var popup = require("./lib/popup.js");
+var width_splitter = require("./lib/width-splitter.js");
 
 // module
 
@@ -1656,16 +1660,20 @@ module.exports = {
 	tab: require("./lib/tab.js"),
 
 	//radio group
-	radio_group: require("./lib/radio-group.js"),
+	radio_group: radio_group,
+	radioGroup: radio_group,
 
 	//show log
-	show_log: require("./lib/show-log.js"),
+	show_log: show_log,
+	showLog: show_log,
 
 	//drag
 	drag: require("./lib/drag-object.js"),
 
 	//popup
-	popup: require("./lib/popup.js"),
+	popup: popup,
+
+	showPopupHtml: popup.showHtml,
 
 	//popup-common
 
@@ -1678,7 +1686,8 @@ module.exports = {
 	selectButtonList: popup_common.selectButtonList,
 
 	//width splitter
-	width_splitter: require("./lib/width-splitter.js"),
+	width_splitter: width_splitter,
+	widthSplitter: width_splitter,
 
 };
 
@@ -1899,35 +1908,40 @@ var query_by_name_path = require("query-by-name-path");
 var htm_tool_css = require("htm-tool-css");
 var dom_document_tool = require("dom-document-tool");
 
-var alert = function (message, modal/*optional*/, cb) {
-	//args
-	if (typeof modal === "function" && !cb) { cb = modal; modal = false; }
-
-	var elPopup = popup.showHtml(require("./popup-common/alert.htm"), modal, cb);
+//options: { modal, cb, cbThis } | modal | cb
+//return the popup element
+var alert = function (message, options, cb) {
+	var elPopup = popup.showHtml(require("./popup-common/alert.htm"), options, cb);
 
 	query_by_name_path(elPopup, ".message").innerHTML = message;
 	query_by_name_path(elPopup, ".ok").addEventListener("click", popup.closeListener);
-}
-var confirm = function (message, modal/*optional*/, cb) {
-	//args
-	if (typeof modal === "function" && !cb) { cb = modal; modal = false; }
 
-	var elPopup = popup.showHtml(require("./popup-common/confirm.htm"), modal, cb);
+	return elPopup;
+}
+
+//options: { modal, cb, cbThis } | modal | cb
+//return the popup element
+var confirm = function (message, options, cb) {
+	var elPopup = popup.showHtml(require("./popup-common/confirm.htm"), options, cb);
 
 	query_by_name_path(elPopup, ".message").innerHTML = message;
 	query_by_name_path(elPopup, ".ok").addEventListener("click", popup.closeByNameListener);
 	query_by_name_path(elPopup, ".cancel").addEventListener("click", popup.closeListener);
-}
-var confirmYnc = function (message, modal/*optional*/, cb) {
-	//args
-	if (typeof modal === "function" && !cb) { cb = modal; modal = false; }
 
-	var elPopup = popup.showHtml(require("./popup-common/confirm-ync.htm"), modal, cb);
+	return elPopup;
+}
+
+//options: { modal, cb, cbThis } | modal | cb
+//return the popup element
+var confirmYnc = function (message, options, cb) {
+	var elPopup = popup.showHtml(require("./popup-common/confirm-ync.htm"), options, cb);
 
 	query_by_name_path(elPopup, ".message").innerHTML = message;
 	query_by_name_path(elPopup, ".yes").addEventListener("click", popup.closeByNameListener);
 	query_by_name_path(elPopup, ".no").addEventListener("click", popup.closeByNameListener);
 	query_by_name_path(elPopup, ".cancel").addEventListener("click", popup.closeListener);
+
+	return elPopup;
 }
 
 //----------------------------------------------------------------------------------------
@@ -1936,18 +1950,18 @@ var promptListener = function () {
 	popup.hide(this, query_by_name_path(this.parentNode.parentNode, '.input').value);
 }
 
-var prompt = function (message, defaultValue/*optional*/, modal/*optional*/, cb) {
-	//args
-	if (typeof defaultValue === "function" && typeof modal === "undefined" && !cb) { cb = defaultValue; defaultValue = ""; modal = false; }
-	else if (typeof modal === "function" && !cb) { cb = modal; modal = false; }
-
-	var elPopup = popup.showHtml(require("./popup-common/prompt.htm"), modal, cb);
+//options: { modal, cb, cbThis } | modal | cb
+//return the popup element
+var prompt = function (message, defaultValue, options, cb) {
+	var elPopup = popup.showHtml(require("./popup-common/prompt.htm"), options, cb);
 
 	query_by_name_path(elPopup, ".message").innerHTML = message;
 	query_by_name_path(elPopup, ".ok").addEventListener("click", promptListener);
 	query_by_name_path(elPopup, ".cancel").addEventListener("click", popup.closeListener);
 
 	if (defaultValue) query_by_name_path(elPopup, '.input').value = defaultValue;
+
+	return elPopup;
 }
 
 //----------------------------------------------------------------------------------------
@@ -1969,13 +1983,11 @@ var selectRadioListener = function () {
 	popup.hide(this, elInput.querySelector('input:checked').value);
 }
 
+//options: { modal, cb, cbThis, maxHeight } | modal | cb
+//return the popup element
 //item: [value,text], or single string for both value and text.
-var selectRadioList = function (message, itemList, defaultValue/*optional*/, modal/*optional*/, cb) {
-	//args
-	if (typeof defaultValue === "function" && typeof modal === "undefined" && !cb) { cb = defaultValue; defaultValue = ""; modal = false; }
-	else if (typeof modal === "function" && !cb) { cb = modal; modal = false; }
-
-	var elPopup = popup.showHtml(require("./popup-common/select-list.htm"), modal, cb);
+var selectRadioList = function (message, itemList, defaultValue, options, cb) {
+	var elPopup = popup.showHtml(require("./popup-common/select-list.htm"), options, cb);
 
 	query_by_name_path(elPopup, ".message").innerHTML = message;
 	query_by_name_path(elPopup, ".ok").addEventListener("click", selectRadioListener);
@@ -1983,6 +1995,7 @@ var selectRadioList = function (message, itemList, defaultValue/*optional*/, mod
 
 	var elInput = query_by_name_path(elPopup, '.input');
 	if (defaultValue) elInput.setAttribute("value", defaultValue);
+	if(options && options.maxHeight) elInput.style["max-height"]= options.maxHeight;
 
 	var nm = ele.id(null, "ht-select-radio-");
 	var i, imax = itemList.length, v, elItem, elRadio, isSelected;
@@ -2002,6 +2015,8 @@ var selectRadioList = function (message, itemList, defaultValue/*optional*/, mod
 
 		elRadio.addEventListener("change", selectRadioChangeListener);
 	}
+
+	return elPopup;
 }
 
 //----------------------------------------------------------------------------------------
@@ -2019,12 +2034,10 @@ var selectCheckboxListener = function () {
 	popup.hide(this, a);
 }
 
-var selectCheckboxList = function (message, itemList, defaultValueList/*optional*/, modal/*optional*/, cb) {
-	//args
-	if (typeof defaultValueList === "function" && typeof modal === "undefined" && !cb) { cb = defaultValueList; defaultValueList = null; modal = false; }
-	else if (typeof modal === "function" && !cb) { cb = modal; modal = false; }
-
-	var elPopup = popup.showHtml(require("./popup-common/select-list.htm"), modal, cb);
+//options: { modal, cb, cbThis, maxHeight } | modal | cb
+//return the popup element
+var selectCheckboxList = function (message, itemList, defaultValueList, options, cb) {
+	var elPopup = popup.showHtml(require("./popup-common/select-list.htm"), options, cb);
 
 	query_by_name_path(elPopup, ".message").innerHTML = message;
 	query_by_name_path(elPopup, ".ok").addEventListener("click", selectCheckboxListener);
@@ -2032,6 +2045,7 @@ var selectCheckboxList = function (message, itemList, defaultValueList/*optional
 
 	if (!defaultValueList || typeof defaultValueList == "string") defaultValueList = [defaultValueList];
 	var elInput = query_by_name_path(elPopup, '.input');
+	if(options && options.maxHeight) elInput.style["max-height"]= options.maxHeight;
 
 	var i, imax = itemList.length, v, elItem, elCheck, isSelected;
 	for (i = 0; i < imax; i++) {
@@ -2050,19 +2064,21 @@ var selectCheckboxList = function (message, itemList, defaultValueList/*optional
 
 		elCheck.addEventListener("change", selectCheckboxChangeListener);
 	}
+
+	return elPopup;
 }
 
 //----------------------------------------------------------------------------------------
 
-var selectButtonList = function (message, itemList, modal/*optional*/, cb) {
-	//args
-	if (typeof modal === "function" && !cb) { cb = modal; modal = false; }
-
-	var elPopup = popup.showHtml(require("./popup-common/button-list.htm"), modal, cb);
+//options: { modal, cb, cbThis, maxHeight } | modal | cb
+//return the popup element
+var selectButtonList = function (message, itemList, options, cb) {
+	var elPopup = popup.showHtml(require("./popup-common/button-list.htm"), options, cb);
 
 	query_by_name_path(elPopup, ".message").innerHTML = message;
 
 	var elInput = query_by_name_path(elPopup, '.input');
+	if(options && options.maxHeight) elInput.style["max-height"]= options.maxHeight;
 
 	var i, imax = itemList.length, v, elItem;
 	for (i = 0; i < imax; i++) {
@@ -2078,8 +2094,10 @@ var selectButtonList = function (message, itemList, modal/*optional*/, cb) {
 	}
 	//add last cancel
 	elItem = dom_document_tool.appendHtml(elInput,
-		"<button style='width:100%;display:block;margin-bottom:1px;margin-top:1em;'>取消</button>");
+		"<button style='width:100%;display:block;margin-bottom:1px;margin-top:1em;'>Cancel</button>");
 	elItem.addEventListener("click", popup.closeListener);
+
+	return elPopup;
 }
 
 // module
@@ -2094,26 +2112,26 @@ module.exports = {
 	selectButtonList: selectButtonList,
 };
 
-},{"./popup-common/alert.htm":20,"./popup-common/button-list.htm":21,"./popup-common/confirm-ync.htm":22,"./popup-common/confirm.htm":23,"./popup-common/prompt.htm":24,"./popup-common/select-list.htm":25,"./popup.js":27,"dom-document-tool":10,"element-tool":13,"htm-tool-css":15,"query-by-name-path":35}],20:[function(require,module,exports){
-module.exports = "<div style='min-width:200px;' name='message'></div><br>\n<span style='float:right'><button name='ok'>确定</button></span>";
+},{"./popup-common/alert.htm":20,"./popup-common/button-list.htm":21,"./popup-common/confirm-ync.htm":22,"./popup-common/confirm.htm":23,"./popup-common/prompt.htm":24,"./popup-common/select-list.htm":25,"./popup.js":27,"dom-document-tool":10,"element-tool":13,"htm-tool-css":15,"query-by-name-path":36}],20:[function(require,module,exports){
+module.exports = "<div style='min-width:200px;' name='message'></div><br>\n<span style='float:right'><button name='ok'>OK</button></span>";
 
 },{}],21:[function(require,module,exports){
 module.exports = "<div style='min-width:200px;' name='message'></div><br>\n<div name='input' class='ht-input ht-popup-group' value='' style=\"border:none;\"></div>";
 
 },{}],22:[function(require,module,exports){
-module.exports = "<div style='min-width:200px;' name='message'></div><br>\n<span style='float:right'>\n\t<button name='yes'>是</button>\n\t<button name='no'>否</button>\n\t<button name='cancel'>取消</button>\n</span>";
+module.exports = "<div style='min-width:200px;' name='message'></div><br>\n<span style='float:right'>\n\t<button name='yes'>Yes</button>\n\t<button name='no'>No</button>\n\t<button name='cancel'>Cancel</button>\n</span>";
 
 },{}],23:[function(require,module,exports){
-module.exports = "<div style='min-width:200px;' name='message'></div><br>\n<span style='float:right'>\n\t<button name='ok'>确定</button>\n\t<button name='cancel'>取消</button>\n</span>";
+module.exports = "<div style='min-width:200px;' name='message'></div><br>\n<span style='float:right'>\n\t<button name='ok'>OK</button>\n\t<button name='cancel'>Cancel</button>\n</span>";
 
 },{}],24:[function(require,module,exports){
-module.exports = "<div style='min-width:200px;' name='message'></div><br>\n<input type='text' style='width:100%;box-sizing:border-box;' name='input'></input><br><br>\n<span style='float:right'>\n\t<button name='ok'>确定</button>\n\t<button name='cancel'>取消</button>\n</span>";
+module.exports = "<div style='min-width:200px;' name='message'></div><br>\n<input type='text' style='width:100%;box-sizing:border-box;' name='input'></input><br><br>\n<span style='float:right'>\n\t<button name='ok'>OK</button>\n\t<button name='cancel'>Cancel</button>\n</span>";
 
 },{}],25:[function(require,module,exports){
-module.exports = "<div style='min-width:200px;' name='message'></div><br>\n<div name='input' class='ht-input ht-popup-group' value=''></div><br>\n<span style='float:right'>\n\t<button name='ok'>确定</button>\n\t<button name='cancel'>取消</button>\n</span>";
+module.exports = "<div style='min-width:200px;' name='message'></div><br>\n<div name='input' class='ht-input ht-popup-group' value=''></div><br>\n<span style='float:right'>\n\t<button name='ok'>OK</button>\n\t<button name='cancel'>Cancel</button>\n</span>";
 
 },{}],26:[function(require,module,exports){
-module.exports = ".ht-popup{ \n\tposition:fixed; \n\tleft:0px; \n\ttop:0px; \n\tright:0px; \n\tbottom:0px; \n\ttext-align:center; \n} \n.ht-popup-back{ \n\tposition:absolute; \n\tleft:0px; \n\ttop:0px; \n\tright:0px; \n\tbottom:0px; \n\tbackground:#eee; \n\topacity:0.5; \n} \n.ht-popup-body{ \n\tdisplay:inline-block; \n\tposition:relative; \n\tmargin-top:10%; \n\tbackground:white; \n\tborder:1px solid gray; \n\tborder-radius:1em; \n\tpadding:0.5em; \n\tbox-shadow:0 0 30px gray; \n\ttext-align:left; \n} \n.ht-popup-modal{ \n\tborder-radius:0px; \n}\n.ht-popup-group{ \n\tborder:1px solid #ccc;\n\tpadding:0.2em;\n\tmax-height:10em;\n\toverflow:auto;\n\tmax-width:500px;\n}\n";
+module.exports = ".ht-popup{ \n\tposition:fixed; \n\tleft:0px; \n\ttop:0px; \n\tright:0px; \n\tbottom:0px; \n\ttext-align:center; \n} \n.ht-popup-back{ \n\tposition:absolute; \n\tleft:0px; \n\ttop:0px; \n\tright:0px; \n\tbottom:0px; \n\tbackground:#eee; \n\topacity:0.5; \n} \n.ht-popup-body{ \n\tdisplay:inline-block; \n\tposition:relative; \n\tmargin-top:10%; \n\tbackground:white; \n\tborder:1px solid gray; \n\tborder-radius:0.6em; \n\tpadding:0.5em; \n\tbox-shadow:0 0 30px gray; \n\ttext-align:left; \n} \n.ht-popup-modal{ \n\tborder-radius:0px; \n}\n.ht-popup-group{ \n\tborder:1px solid #ccc;\n\tpadding:0.2em;\n\tmax-height:10em;\n\toverflow:auto;\n\tmax-width:500px;\n}\n";
 
 },{}],27:[function(require,module,exports){
 
@@ -2134,6 +2152,7 @@ var ele = require("element-tool");
 var add_css_text = require("add-css-text");
 var dom_document_tool = require("dom-document-tool");
 var add_event_listeners = require("add-event-listeners");
+var options_from_options = require("options-from-options");
 
 var drag_object = require("./drag-object.js");
 
@@ -2150,7 +2169,12 @@ var closeByNameListener = function () {
 	hide(this, this.getAttribute("name"));
 }
 
-var show = function (el, modal, cb) {
+//options: { modal, cb, cbThis } | modal | cb
+//return the popup element
+var show = function (el, options, cb) {
+	//console.log(options);
+	options = options_from_options.cb(options, cb, null, "modal");
+	//console.log("new options", options);
 
 	//init
 	if (!popupStack) {
@@ -2196,12 +2220,12 @@ var show = function (el, modal, cb) {
 	if (!elClose) {
 		elClose = dom_document_tool.prependHtml(elBody,
 			"<span name='ht-popup-close' style='float:right;text-decoration:none;padding:0em 0.3em;' " +
-			"class='ht-cmd' title='关闭'>x</span>");
+			"class='ht-cmd' title='Close'>x</span>");
 		elClose.addEventListener("click", closeListener);
 	}
 
 	//modal setting
-	if (modal) {
+	if (options.modal) {
 		elBody.classList.add("ht-popup-modal");
 		elClose.innerHTML = "[&times;]";
 	}
@@ -2214,7 +2238,7 @@ var show = function (el, modal, cb) {
 
 	el.style.zIndex = 10 + popupStack.length;
 
-	popupStack.push([el, cb]);
+	popupStack.push([el, options]);
 
 	return el;
 }
@@ -2235,7 +2259,7 @@ var hide = function (el, data) {
 		if (el === psi[0]) {
 			el.style.display = "none";
 			popupStack.pop();
-			if (psi[1]) psi[1](null, data);
+			if (psi[1].cb) psi[1].cb.call(psi[1].cbThis, null, data);
 			return;
 		}
 
@@ -2260,7 +2284,9 @@ var hide = function (el, data) {
 
 var POPUP_HTML_COUNT_MAX = 10;
 
-var showHtml = function (html, modal, cb) {
+//options: { modal, cb, cbThis } | modal | cb
+//return the popup element
+var showHtml = function (html, options, cb) {
 
 	//find empty html
 	var i, nm, el;
@@ -2296,7 +2322,7 @@ var showHtml = function (html, modal, cb) {
 	}
 	elBody.innerHTML = html;
 
-	return show(nm, (typeof modal === "undefined") ? 1 : modal, cb);
+	return show(nm, options, cb);
 }
 
 // module
@@ -2311,7 +2337,7 @@ module.exports = {
 	showHtml: showHtml,
 };
 
-},{"./drag-object.js":18,"./popup.css":26,"add-css-text":3,"add-event-listeners":4,"dom-document-tool":10,"element-tool":13}],28:[function(require,module,exports){
+},{"./drag-object.js":18,"./popup.css":26,"add-css-text":3,"add-event-listeners":4,"dom-document-tool":10,"element-tool":13,"options-from-options":34}],28:[function(require,module,exports){
 
 /*
 radio group
@@ -2409,7 +2435,7 @@ exports.init = init;
 exports.getValue = getValue;
 
 },{"element-tool":13}],29:[function(require,module,exports){
-module.exports = "<div style='position:fixed;right:0.5em;bottom:0.5em;width:auto;height:auto;max-width:500px;background:white;border:1px\n\tsolid gray;font-size:9pt;padding:0.5em;cursor:default;'>\n\t<span name='close' class='ht-cmd' style='float:right;text-decoration:none;padding:0em 0.3em;'\n\t\ttitle='关闭'>&times;</span>\n\t<span name='minimize' class='ht-cmd' style='display:none;float:right;text-decoration:none;padding:0em 0.3em;'\n\t\ttitle='最小化'>&minus;</span>\n\t<b>日志</b>\n\t<div name='content' style='display:none;'></div>\n</div>";
+module.exports = "<div style='position:fixed;right:0.5em;bottom:0.5em;width:auto;height:auto;max-width:500px;background:white;border:1px\n\tsolid gray;font-size:9pt;padding:0.5em;cursor:default;'>\n\t<span name='close' class='ht-cmd' style='float:right;text-decoration:none;padding:0em 0.3em;'\n\t\ttitle='Close'>&times;</span>\n\t<span name='minimize' class='ht-cmd' style='display:none;float:right;text-decoration:none;padding:0em 0.3em;'\n\t\ttitle='Minimize'>&minus;</span>\n\t<b>Log</b>\n\t<div name='content' style='display:none;'></div>\n</div>";
 
 },{}],30:[function(require,module,exports){
 /*
@@ -2531,7 +2557,7 @@ var showLog = function (s) {
 
 module.exports = showLog;
 
-},{"./show-log.htm":29,"dom-document-tool":10,"element-tool":13,"query-by-name-path":35,"tmkt":37}],31:[function(require,module,exports){
+},{"./show-log.htm":29,"dom-document-tool":10,"element-tool":13,"query-by-name-path":36,"tmkt":38}],31:[function(require,module,exports){
 module.exports = ".ht-tab-group{\n\tborder-bottom:1px solid black;\n\tmargin-bottom:0.5em;\n}\n.ht-tab-item{\n\tdisplay:inline-block;\n\tpadding:0.2em 0.5em;\n\tmargin-left:0.5em;\n\tposition:relative;\n\tleft:0px;\n\ttop:0px;\n\tbackground:#eee;\n\tcursor:pointer;\n\tborder-left:1px solid #eee;\n\tborder-top:0px solid #eee;\n\tborder-right:1px solid #eee;\n}\n.ht-tab-item-selected{\n\tbackground:white;\n\ttop:1px;\n\tcursor:default;\n\tborder-left:1px solid black;\n\tborder-top:1px solid black;\n\tborder-right:1px solid black;\n}\n";
 
 },{}],32:[function(require,module,exports){
@@ -2888,7 +2914,56 @@ module.exports = exports = function (elSplitter, leftWidthList, rightBorderList,
 exports.widthSplitterDragObject = widthSplitterDragObject;
 exports.class = WidthSplitterDragObjectClass;
 
-},{"./drag-object.js":18,"element-tool":13,"to-px-by-offset":38}],34:[function(require,module,exports){
+},{"./drag-object.js":18,"element-tool":13,"to-px-by-offset":39}],34:[function(require,module,exports){
+
+// options-from-options @ npm, get a new options object from a raw options.
+
+/*
+for function like func( ..., options )
+
+shortcut: the shortcut property name of the options;
+defaultShortcut: the default shortcut name, when options is not object or is null; default is 'raw_options'.
+*/
+function optionsFromOptions(options, shortcut, defaultShortcut) {
+	var newOptions = options;
+
+	if (shortcut) {
+		newOptions = {};
+		newOptions[shortcut] = options;
+	}
+	else if (typeof options !== "object" || options === null) {
+		newOptions = {};
+		if (defaultShortcut) newOptions[defaultShortcut] = options;
+		else newOptions.raw_options = options;	//save raw options to .raw_options
+	}
+
+	return newOptions;
+}
+
+/*
+for function like func( ..., options, cb )
+
+option: { cb, [cbThis], [raw_options] }, a later cb will replace the previous.
+*/
+function optionsFromOptionsCb(options, cb, shortcut, defaultShortcut) {
+	var newOptions = optionsFromOptions(
+		options,
+		shortcut || (typeof options === "function" && typeof cb === "undefined" && "cb"),
+		defaultShortcut
+	);
+
+	if (cb) newOptions.cb = cb;	//replace the existed
+
+	return newOptions;
+}
+
+// module
+
+module.exports = exports = optionsFromOptions;
+
+exports.cb = optionsFromOptionsCb;
+
+},{}],35:[function(require,module,exports){
 
 // path-tool @ npm
 // path tool
@@ -2913,7 +2988,7 @@ module.exports = {
 
 }
 
-},{}],35:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 
 // query-by-name-path @ npm, query dom element by name attribute path.
 
@@ -2978,7 +3053,7 @@ module.exports = function (el, namePath, strict) {
 	return null;
 }
 
-},{}],36:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 
 // script-tool @ npm, script tool.
 
@@ -3063,7 +3138,7 @@ module.exports = {
 
 };
 
-},{}],37:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 
 // tmkt @ npm, time kit.
 
@@ -3284,7 +3359,7 @@ module.exports = {
 };
 
 
-},{}],38:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 
 // to-px-by-offset @ npm, transfer css property to px unit, by comparing offset-x property.
 
@@ -3331,7 +3406,7 @@ module.exports = {
 },{}],"_package_json":[function(require,module,exports){
 module.exports={
   "name": "tpsvr",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "test page server",
   "main": "server/tpsvr-main.js",
   "scripts": {
@@ -3357,14 +3432,14 @@ module.exports={
   "homepage": "https://github.com/adf0001/tpsvr#readme",
   "dependencies": {
     "argv-config": "^1.0.2",
-    "browser-http-request": "^1.0.5",
+    "browser-http-request": "^1.0.6",
     "browserify-stringify-minimize-css-content": "^1.0.1",
     "bundle-collapser": "^1.4.0",
     "callq": "^1.0.7",
     "delay-set-timeout": "^1.0.1",
     "easy-http-server": "^1.0.1",
-    "htm-tool": "^1.0.14",
-    "htm-tool-ui": "^1.0.9",
+    "htm-tool": "^1.0.15",
+    "htm-tool-ui": "^1.0.11",
     "http-request-text": "^1.0.5",
     "multiple-spawn": "^1.0.14",
     "response-long-poll-state": "^1.0.4",
@@ -3444,9 +3519,11 @@ module.exports = Object.assign(
 		observeSingleMutation: dom_document_tool.observeSingleMutation,
 
 		//query by name path
+		query_by_name_path: query_by_name_path,
 		queryByNamePath: query_by_name_path,
 
 		//derive object
+		create_assign: create_assign,
 		derive: create_assign,
 		deriveObject: create_assign,
 
@@ -3461,10 +3538,12 @@ module.exports = Object.assign(
 		//mapValue: mapValue,
 
 		//xhr
+		browser_http_request: browser_http_request,
 		httpRequest: browser_http_request.requestText,
 		httpRequestJson: browser_http_request.requestJson,
 
 		//bind-ui
+		bind_ui: bind_ui,
 		bindUi: bind_ui,
 
 		//bind-element
@@ -3479,8 +3558,8 @@ module.exports = Object.assign(
 		ui: htm_tool_ui,
 
 		//log
-		showLog: htm_tool_ui.show_log,
 		show_log: htm_tool_ui.show_log,
+		showLog: htm_tool_ui.showLog,
 
 		//drag
 		drag: htm_tool_ui.drag,
@@ -3504,7 +3583,7 @@ module.exports = Object.assign(
 //dom global variable
 if (typeof window !== "undefined" && window) { window[globalVarName] = module.exports; }
 
-},{"add-css-text":3,"bind-element":5,"bind-ui":6,"browser-http-request":7,"create-assign":9,"dom-document-tool":10,"element-offset":12,"element-tool":13,"format-error-tool":14,"htm-tool-css":15,"htm-tool-ui":17,"path-tool":34,"query-by-name-path":35,"tmkt":37}],"main-view":[function(require,module,exports){
+},{"add-css-text":3,"bind-element":5,"bind-ui":6,"browser-http-request":7,"create-assign":9,"dom-document-tool":10,"element-offset":12,"element-tool":13,"format-error-tool":14,"htm-tool-css":15,"htm-tool-ui":17,"path-tool":35,"query-by-name-path":36,"tmkt":38}],"main-view":[function(require,module,exports){
 
 var ht = require("htm-tool");
 var to_px_by_offset = require("to-px-by-offset");
@@ -3829,6 +3908,7 @@ module.exports = {
 				["tryMinimizeBundle", "<div style='text-align:left;' title='try bundling only main module, and minimize it.'>try minimize bundle</div>"],
 				["createMiniBundleTool", "<div style='text-align:left;' title='create main module minimize bundle tool, optional.'>create file 'main-minimize.bat' (optional)</div>"],
 			],
+			{maxHeight:"15em",},
 			function (err, data) {
 				if (!data) return;
 
@@ -3839,9 +3919,6 @@ module.exports = {
 				else if (data === "createMiniBundleTool") _this.createMiniBundleTool();
 			}
 		)
-
-		console.log(el);
-		ht.queryByNamePath(el,"input").style.height="15em";
 	},
 
 	sendProjectCmd: function (cmd) {
@@ -3928,4 +4005,4 @@ module.exports.class = function (el, cb) {
 	ht.bindUi(el, Object.create(module.exports), null, cb);
 }
 
-},{"./main-view.css":1,"./main-view.htm":2,"htm-tool":"htm-tool","to-px-by-offset":38}]},{},[]);
+},{"./main-view.css":1,"./main-view.htm":2,"htm-tool":"htm-tool","to-px-by-offset":39}]},{},[]);

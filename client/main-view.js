@@ -322,6 +322,7 @@ module.exports = {
 				["tryMinimizeBundle", "<div style='text-align:left;' title='try bundling only main module, and minimize it.'>try minimize bundle</div>"],
 				["createMiniBundleTool", "<div style='text-align:left;' title='create main module minimize bundle tool, optional.'>create file 'main-minimize.bat' (optional)</div>"],
 			],
+			{maxHeight:"15em",},
 			function (err, data) {
 				if (!data) return;
 
@@ -332,9 +333,6 @@ module.exports = {
 				else if (data === "createMiniBundleTool") _this.createMiniBundleTool();
 			}
 		)
-
-		console.log(el);
-		ht.queryByNamePath(el,"input").style.height="15em";
 	},
 
 	sendProjectCmd: function (cmd) {

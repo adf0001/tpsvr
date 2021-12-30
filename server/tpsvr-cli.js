@@ -5,6 +5,7 @@ var path = require('path');
 var child_process = require('child_process');
 
 var supervisor = require("supervisor");
+var open_url_by_browser = require("open-url-by-browser");
 
 var http_request_text = require("http-request-text");
 var cq = require("callq");
@@ -33,6 +34,9 @@ var helpList = [
 	"	-a, --add [<dir>]       add directory",
 	"	-r, --remove [<dir>]    detach directory",
 	"	-o, --open              open default browser",
+	"	-o chrome|c|firefox|f|edge|e|none|n",
+	"		                    try to open with special browser",
+
 ];
 
 var userConfig;
@@ -62,6 +66,33 @@ const rli = readline.createInterface({
 	output: process.stdout
 });
 */
+
+function openServerUrl(serverUrl, cfg) {
+	if (!("open" in cfg)) return;
+
+	if (cfg.open) {
+		if (cfg.open.match(/none|n/i)) return;
+
+		if (cfg.open.match(/chrome|c/i)) {
+			console.log("opening chrome browser ...");
+			open_url_by_browser.chrome(serverUrl);
+			return;
+		}
+		else if (cfg.open.match(/firefox|f/i)) {
+			console.log("opening firefox browser ...");
+			open_url_by_browser.firefox(serverUrl);
+			return;
+		}
+		else if (cfg.open.match(/edge|e/i)) {
+			console.log("opening edge browser ...");
+			open_url_by_browser.edge(serverUrl);
+			return;
+		}
+	}
+
+	console.log("opening default browser ...");
+	open_url_by_browser(serverUrl);
+}
 
 cq(null, [
 	//help 
@@ -95,10 +126,9 @@ cq(null, [
 					"-RV",
 					"--", __dirname + "/tpsvr-main.js", "--cwd", process.cwd(), "--by-supervisor"])
 
-				if ("open" in cfg) {
-					console.log("opening default browser ...");
-					child_process.exec('cmd /c start http://' + ip + ":" + cfg.http_port + '/');
-				}
+
+				if ("open" in cfg) openServerUrl('http://' + ip + ":" + cfg.http_port + '/', cfg);
+
 				return;
 			}
 			console.log(err);
@@ -168,10 +198,7 @@ cq(null, [
 	//other
 	function (err, data, que) {
 		//open default browser
-		if ("open" in cfg) {
-			console.log("opening default browser ...");
-			child_process.execSync('cmd /c start http://' + ip + ":" + cfg.http_port + '/');
-		}
+		if ("open" in cfg) openServerUrl('http://' + ip + ":" + cfg.http_port + '/', cfg);
 		return true;
 	},
 	"exit-forcely", function (err, data, que) {

@@ -2,8 +2,9 @@
 test page server
 
 # Install
+install globally for CLI
 ```
-npm install tpsvr
+npm install tpsvr -g
 ```
 
 # CLI Usage
@@ -24,6 +25,8 @@ options:
         -a, --add [<dir>]       add directory
         -r, --remove [<dir>]    detach directory
         -o, --open              open default browser
+		-o chrome|c|firefox|f|edge|e|none|n
+		                        try to open with special browser
 
 ```
 

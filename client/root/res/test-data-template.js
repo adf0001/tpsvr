@@ -21,4 +21,4 @@ module.exports = {
 if (typeof showResult !== "function") showResult = function (text) { console.log(text); }
 
 //for mocha
-if (typeof describe === "function") describe('package_name_var', function () { for (var i in module.exports) { it(i, module.exports[i]); } });
+if (typeof describe === "function") describe('package_name_var', function () { for (var i in module.exports) { it(i, module.exports[i]).timeout(5000); } });

@@ -160,7 +160,7 @@ cq(null, [
 					"--", __dirname + "/tpsvr-main.js", "--cwd", process.cwd(), "--by-supervisor"
 				];
 
-				var background = ("start" in cfg) && (!cfg['start'] || cfg['start'].match(/^(foreground|f)$/i));
+				var background = ("start" in cfg) && (!cfg['start'] || !cfg['start'].match(/^(foreground|f)$/i));
 
 				if (background) {
 					console.log("to start tpsvr in background");

@@ -1,0 +1,116 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+	<title>tpsvr ui tool for windows</title>
+	<script>
+
+		function startService(file) {
+			var shell = new ActiveXObject('WScript.Shell');
+			shell.Run('cmd /c ' + file, chkBackground.checked ? 0 : 1);
+			shell = null;
+
+			window.setTimeout(checkService, 2000);
+			window.setTimeout(checkService, 5000);
+			window.setTimeout(checkService, 8000);
+		}
+
+		function stopService() {
+			try {
+				var xq = window.ActiveXObject ? (new ActiveXObject("Msxml2.XMLHTTP")) : (new XMLHttpRequest());
+
+				xq.open("GET", "http://127.0.0.1:8060/?cmd=stopTpsvr&tm=" + (new Date()).getTime(), false);
+				xq.send(null);
+
+				var s = "" + xq.responseText;
+				if (s.indexOf("tpsvr") >= 0) {
+					alert("Stop / 服务成功停止");
+					onCheckService(0, "Stop / 停止");
+				}
+				else {
+					alert(s);
+					onCheckService(0, s);
+				}
+			}
+			catch (ex) {
+				alert(ex + ", " + ex.description);
+				onCheckService(0, ex + ", " + ex.description);
+			}
+		}
+
+		function checkService() {
+			try {
+				var xq = window.ActiveXObject ? (new ActiveXObject("Msxml2.XMLHTTP")) : (new XMLHttpRequest());
+
+				xq.open("GET", "http://127.0.0.1:8060/?cmd=getVersion&tm=" + (new Date()).getTime(), true);
+
+				xq.onreadystatechange = function () {
+					if (xq.readyState != 4) return;
+					if (xq.status != 200) {
+						onCheckService(0, xq.status);
+						return;
+					}
+
+					var s = "" + xq.responseText;
+					if (s.indexOf("tpsvr") >= 0) {
+						onCheckService(1, s);
+					}
+					else {
+						onCheckService(0, s);
+					}
+				}
+
+				xq.send(null);
+			}
+			catch (ex) {
+				//alert(ex+", " + ex.description);
+				onCheckService(0, ex + ", " + ex.description);
+			}
+		}
+
+		function onCheckService(exist, msg) {
+			if (exist) {
+				msg = msg ? ("v" + msg.replace(/^\D*([\d\.]+).*$/, "$1")) : "";
+
+				var dt = new Date();
+				dt = dt.getHours() + ":" + dt.getMinutes() + ":" + dt.getSeconds();
+				msg += ", " + dt.replace(/\b(\d)\b/g, "0$1");
+
+				divInfo.innerHTML = "Running / 已启动, " + msg;
+			}
+			else {
+				divInfo.innerHTML = "Not detected / 未检测到服务，" + msg;
+			}
+
+			cmdStart64.disabled = exist ? 1 : 0;
+		}
+
+		function onBodyLoad() {
+			window.resizeTo(400, 500);
+
+			checkService();
+		}
+
+	</script>
+
+</head>
+
+<body onload="onBodyLoad()">
+	<center>
+		<br />
+		<br />
+		<button id="cmdCheck" onclick="checkService()" style="width:200px;">Check / 检测状态</button>
+		<div id="divInfo" style="font-size:9pt;">&nbsp;</div>
+		<br />
+		<button id="cmdStart64" onclick="startService('windows-start.bat')" style="width:200px;">Start / 启动服务</button>
+		<br />
+		<label style="font-size:9pt;"><input type=checkbox id=chkBackground></input> Background / 后台</label>
+		<br />
+		<br />
+		<button onclick="stopService()" style="width:200px;">Stop / 停止</button><br />
+	</center>
+
+</body>
+
+</html>

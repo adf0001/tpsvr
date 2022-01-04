@@ -397,8 +397,21 @@ var getLongPollState = function (req, res, config) {
 	return true;
 }
 
+var stopTpsvr = function (req, res, config) {
+	response_tool.text(res, "tpsvr stopping ...");
+	setTimeout(function () {
+		if (process.ppid && ("by-supervisor" in config)) {		//kill parent process, like supervisor.
+			console.log("killing parent process ...");
+			process.kill(process.ppid);
+		}
+		process.exit(0);
+	}, 200);
+	return true;
+}
+
 var cmdMap = {
 	"getVersion": getVersion,
+	"stopTpsvr": stopTpsvr,
 	"addProject": addProject,
 	"removeProject": removeProject,
 	"listProject": listProject,

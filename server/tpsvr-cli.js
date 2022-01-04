@@ -24,18 +24,24 @@ var helpList = [
 	"Usgae: tpsvr [options]",
 	"",
 	"The default behaviour is trying",
-	"	to start test-page-server,",
+	"	to start test-page-server in foreground,",
 	"	or to add current directory to project list,",
 	"	or to process work according options.",
 	"",
 	"options:",
-	"	-h, --help              show help",
+	"	-h, --help              show help.",
 	"",
-	"	-a, --add [<dir>]       add directory",
-	"	-r, --remove [<dir>]    detach directory",
-	"	-o, --open              open default browser",
+	"	--start                 start server in background.",
+	"	--start foreground|f    start server in foreground.",
+	"	--stop                  stop server.",
+	"	-c, --check             only check the server, don't start and don't add project.",
+	"",
+	"	-a, --add [<dir>]       add directory.",
+	"	-r, --remove [<dir>]    detach directory/project.",
+	"",
+	"	-o, --open              open default browser.",
 	"	-o chrome|c|firefox|f|edge|e|none|n",
-	"		                    try to open with special browser",
+	"	                        try to open with special browser.",
 
 ];
 
@@ -46,7 +52,13 @@ try {
 	userConfig = {};
 }
 
-argv_config(userConfig, null, null, { "-r": "remove", "-a": "add", "-o": "open", "-h": "help" })
+argv_config(userConfig, null, null, {
+	"-r": "remove",
+	"-a": "add",
+	"-o": "open",
+	"-h": "help",
+	"-c": "check",
+});
 
 var cfg = Object.assign(Object.create(default_tpsvr_config), userConfig || {});
 
@@ -71,7 +83,7 @@ function openServerUrl(serverUrl, cfg) {
 	if (!("open" in cfg)) return;
 
 	if (cfg.open) {
-		if (cfg.open.match(/none|n/i)) return;
+		if (cfg.open.match(/none|n/i)) return;	//don't open
 
 		if (cfg.open.match(/chrome|c/i)) {
 			console.log("opening chrome browser ...");
@@ -101,6 +113,21 @@ cq(null, [
 			console.log(helpList.join("\n"));
 			return que.final(err, data, "exit-forcely");
 		}
+		if ("stop" in cfg) {
+			console.log("try to stop server ...");
+
+			http_request_text(
+				'http://' + ip + ":" + cfg.http_port + '/?cmd=stopTpsvr',
+				{ method: "GET", timeout: 1000 }, "", null,
+				function (err, data) {
+					console.log(err ? err.responseText : (data && data.responseText));
+
+					que.final(err, data, "exit-forcely");
+				}
+			);
+
+			return;
+		}
 
 		return true;
 	},
@@ -117,18 +144,45 @@ cq(null, [
 			if (err.message && err.message.indexOf("ECONNREFUSED") > 0) {
 				que.final(err, data);
 
+				if ("check" in cfg) {		//only check state
+					console.log("tpsvr is not running");
+					return;
+				}
+
 				//start server, by supervisor
-				supervisor.run([
+
+				var startArgs = [
 					"-i",
 					__dirname + "/../node_modules," +
 					__dirname + "/../output," +
 					__dirname + "/../client",
 					"-RV",
-					"--", __dirname + "/tpsvr-main.js", "--cwd", process.cwd(), "--by-supervisor"])
+					"--", __dirname + "/tpsvr-main.js", "--cwd", process.cwd(), "--by-supervisor"
+				];
 
+				var background = ("start" in cfg) && (!cfg['start'] || cfg['start'].match(/^(foreground|f)$/i));
+
+				if (background) {
+					console.log("to start tpsvr in background");
+
+					//child_process.spawn("cmd", ["/c", /*"start", " ", "/b",*/ __dirname + "/../node_modules/.bin/supervisor"]
+					//	.concat(startArgs), { detached: true, windowsHide: true, });
+
+					//https://github.com/nodejs/node/issues/21825			//2022-1-3
+
+					child_process.spawn("cscript.exe", [__dirname + "/../bin/windows-start-background.vbs"],
+						{ cwd: __dirname + "/../bin/", detached: true, windowsHide: true });
+				}
+				else {
+					console.log("to start tpsvr in foreground");
+					supervisor.run(startArgs);
+				}
 
 				if ("open" in cfg) openServerUrl('http://' + ip + ":" + cfg.http_port + '/', cfg);
 
+				if (background) {
+					//process.exit(0);	//don't wait background process
+				}
 				return;
 			}
 			console.log(err);
@@ -138,6 +192,8 @@ cq(null, [
 
 		console.log("tpsvr is already running, " + data.responseJson +
 			", http://" + ip + ":" + cfg.http_port);
+
+		if (("check" in cfg) || ("start" in cfg)) return que.final(err, data, "exit-forcely");		//check state or to start
 
 		if (("add" in cfg) || ("remove" in cfg) ||
 			!fs.existsSync(process.cwd() + "/package.json") ||

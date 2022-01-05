@@ -8,12 +8,12 @@
 
 		function startService(file) {
 			var shell = new ActiveXObject('WScript.Shell');
-			shell.Run('cmd /c ' + file, chkBackground.checked ? 0 : 1);
+			shell.Run('cmd /c ' + file + " " + selBundle.value, chkBackground.checked ? 0 : 1);
 			shell = null;
 
 			window.setTimeout(checkService, 2000);
-			window.setTimeout(checkService, 5000);
-			window.setTimeout(checkService, 8000);
+			//window.setTimeout(checkService, 5000);
+			//window.setTimeout(checkService, 8000);
 		}
 
 		function stopService() {
@@ -71,7 +71,12 @@
 
 		function onCheckService(exist, msg) {
 			if (exist) {
-				msg = msg ? ("v" + msg.replace(/^\D*([\d\.]+).*$/, "$1")) : "";
+				msg=msg||"";
+				if(msg){
+					var sa=msg.split(/,\s*/);
+					msg="v"+sa[1];
+					if(sa[2].indexOf("cwd")<0 ) msg+=", " + sa[2];
+				}
 
 				var dt = new Date();
 				dt = dt.getHours() + ":" + dt.getMinutes() + ":" + dt.getSeconds();
@@ -88,6 +93,7 @@
 
 		function onBodyLoad() {
 			window.resizeTo(400, 500);
+			chkBackground.checked=false;
 
 			checkService();
 		}
@@ -106,6 +112,12 @@
 		<button id="cmdStart64" onclick="startService('windows-start.bat')" style="width:200px;">Start / 启动服务</button>
 		<br />
 		<label style="font-size:9pt;"><input type=checkbox id=chkBackground></input> Background / 后台</label>
+		&nbsp; &nbsp; 
+		<select id="selBundle" value="" style="font-size:9pt;margin-top:0.1em;">
+			<option value="" title="run main source">default</option>
+			<option value=".bundle" title="run main bundle">bundle</option>
+			<option value=".bundle.minimized" title="run main minimized bundle">minimized</option>
+		</select>
 		<br />
 		<br />
 		<button onclick="stopService()" style="width:200px;">Stop / 停止</button><br />

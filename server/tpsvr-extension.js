@@ -26,7 +26,10 @@ var getVersion = function (req, res, config) {
 	var cwdExists = project_data.exists(decodeURIComponent(req.reqUrl.query.cwd));
 	cwdExists = (cwdExists && !(cwdExists instanceof Error)) ? 1 : 0;
 
+	//console.log(config);
+
 	return responseErrorOrData(res, null, _package_json.name + ", " + _package_json.version +
+		(config.bundle_ver ? (", " + config.bundle_ver.replace(/^\.+/, "")) : "") +
 		", cwd=" + cwdExists);
 }
 
@@ -87,6 +90,21 @@ function loadProjectFile(name, filePath, req, res, config) {
 	}
 
 	config.default_process(req, res, cfg);
+}
+
+function getClientBundle(req, res, config) {
+	var cfg = Object.create(config);
+	cfg.filePath = __dirname + "/../client/root/bundle-client.debug.js";
+	//console.log("getClientBundle")
+
+	if (!fs.existsSync(cfg.filePath)) {
+		cfg.filePath = __dirname + "/../client/root/bundle-client.minimized.js";
+	}
+	cfg.isRoot = false;
+
+	config.default_process(req, res, cfg);
+
+	return true;
 }
 
 var startBundle = function (req, res, config) {
@@ -424,6 +442,7 @@ var cmdMap = {
 	"createBundleTool": createBundleTool,
 	"tryMinimizeBundle": tryMinimizeBundle,
 	"createMiniBundleTool": createMiniBundleTool,
+	"getClientBundle": getClientBundle,
 };
 
 var projectDataLoaded = false;
@@ -457,6 +476,7 @@ module.exports = function (req, res, config) {
 	if (!query || !query.cmd) {
 		var cfg = Object.create(config);
 		cfg.filePath = __dirname + "/../client/root/index.html";
+		//console.log(__dirname, cfg.filePath);
 
 		return config.default_process(req, res, cfg);
 	};

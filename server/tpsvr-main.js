@@ -5,7 +5,7 @@ var path = require('path');
 var easy_http_server = require('easy-http-server');
 var argv_config = require("argv-config");
 
-var default_tpsvr_config = require("./tpsvr-config.js");
+var default_tpsvr_config = require("./tpsvr-config-ref.js");
 var tpsvr_extension = require("./tpsvr-extension.js");
 
 //config

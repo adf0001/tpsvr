@@ -6,7 +6,7 @@ var response_long_poll_state = require("response-long-poll-state");
 var verion_value_set = require("version-value-set");
 var delay_set_timeout = require("delay-set-timeout");
 
-var config = require("../tpsvr-config.js");
+var config = require("../tpsvr-config-ref.js");
 
 var project_data = require("./project-data.js");
 

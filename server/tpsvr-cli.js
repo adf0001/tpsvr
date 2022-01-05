@@ -12,7 +12,6 @@ var cq = require("callq");
 var argv_config = require("argv-config");
 
 var default_tpsvr_config = require("./tpsvr-config.js");
-var tpsvr_extension = require("./tpsvr-extension.js");
 
 var _package_json = require("../package.json");
 
@@ -35,6 +34,7 @@ var helpList = [
 	"	--start foreground|f    start server in foreground.",
 	"	--stop                  stop server.",
 	"	-c, --check             only check the server, don't start and don't add project.",
+	"	--bundle                use bundle version.",
 	"",
 	"	-a, --add [<dir>]       add directory.",
 	"	-r, --remove [<dir>]    detach directory/project.",
@@ -61,9 +61,6 @@ argv_config(userConfig, null, null, {
 });
 
 var cfg = Object.assign(Object.create(default_tpsvr_config), userConfig || {});
-
-if (cfg.extension && (cfg.extension instanceof Array)) cfg.extension.push(tpsvr_extension);
-else cfg.extension = [tpsvr_extension];
 
 cfg.root_path = path.normalize(__dirname + "/../client/root");
 
@@ -151,13 +148,34 @@ cq(null, [
 
 				//start server, by supervisor
 
+				var bundleVer = "";
+				if ('bundle' in cfg) { bundleVer = ".bundle" + (cfg.bundle ? ("." + cfg.bundle) : ""); }
+
+				//check main file
+				var mainFile = __dirname + "/tpsvr-main" + bundleVer + ".js";
+				if (!fs.existsSync(mainFile)) {
+					var mainFile0 = mainFile;
+
+					if (!bundleVer) {
+						//try .bundle.minimized
+						bundleVer = ".bundle.minimized";
+						mainFile = __dirname + "/tpsvr-main" + bundleVer + ".js";
+					}
+
+					if (!fs.existsSync(mainFile)) {
+						console.log("main file unfound, " + mainFile0);
+						return;
+					}
+				}
+
 				var startArgs = [
 					"-i",
 					__dirname + "/../node_modules," +
 					__dirname + "/../output," +
 					__dirname + "/../client",
 					"-RV",
-					"--", __dirname + "/tpsvr-main.js", "--cwd", process.cwd(), "--by-supervisor"
+					"--", mainFile, "--cwd", process.cwd(), "--by-supervisor",
+					"bundle_ver", bundleVer,
 				];
 
 				var background = ("start" in cfg) && (!cfg['start'] || !cfg['start'].match(/^(foreground|f)$/i));
@@ -170,7 +188,7 @@ cq(null, [
 
 					//https://github.com/nodejs/node/issues/21825			//2022-1-3
 
-					child_process.spawn("cscript.exe", [__dirname + "/../bin/windows-start-background.vbs"],
+					child_process.spawn("cscript.exe", [__dirname + "/../bin/windows-start-background.vbs", bundleVer],
 						{ cwd: __dirname + "/../bin/", detached: true, windowsHide: true });
 				}
 				else {

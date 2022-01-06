@@ -314,7 +314,7 @@ module.exports = {
 
 	onClickMore: function () {
 		var _this = this;
-		var el= ht.ui.selectButtonList("project operations",
+		var el = ht.ui.selectButtonList("project operations",
 			[
 				["createTestData", "<div style='text-align:left;' title='create test code, required.'>create file 'test-data.js'</div>"],
 				["createBundleTool", "<div style='text-align:left;' title='create test module bundle tool, optional.'>create file 'test-bundle.bat' (optional)</div>"],
@@ -322,7 +322,7 @@ module.exports = {
 				["tryMinimizeBundle", "<div style='text-align:left;' title='try bundling only main module, and minimize it.'>try minimize bundle</div>"],
 				["createMiniBundleTool", "<div style='text-align:left;' title='create main module minimize bundle tool, optional.'>create file 'main-minimize.bat' (optional)</div>"],
 			],
-			{maxHeight:"15em",},
+			{ maxHeight: "15em", },
 			function (err, data) {
 				if (!data) return;
 
@@ -401,7 +401,7 @@ module.exports = {
 	},
 
 	addProject: function () {
-		ht.prompt("add new project path", function (err, data) {
+		ht.prompt("add new project path", "", function (err, data) {
 			if (err || !data) return;
 
 			ht.httpRequestJson("/?cmd=addProject&path=" + data, "GET", "", "",

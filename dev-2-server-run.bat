@@ -3,4 +3,4 @@ chcp 65001
 
 title tpsvr - %CD%
 
-node bin\cmd.js
+node ./bin/cmd.js

@@ -9,12 +9,12 @@ set watchifyPath=%nodeModulesPath%/.bin/watchify
 
 title watchify - tpsvr-server
 
-set dest=./tpsvr-main.bundle.js
+set destFile=./tpsvr-main.bundle.js
 
 call %watchifyPath% ^
 	./tpsvr-main.js ^
 	-u ./tpsvr-config.js ^
-	-o %dest% ^
+	-o %destFile% ^
 	-v ^
 	-g [ "%nodeModulesPath%/stringify" --extensions [.html .css .htm ] ] ^
 	--node

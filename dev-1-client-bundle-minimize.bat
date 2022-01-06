@@ -6,10 +6,10 @@ set nodeModulesPath=./node_modules
 set browserifyPath=%nodeModulesPath%/.bin/browserify
 set terserPath=%nodeModulesPath%/.bin/terser
 
-set dest=./client/root/bundle-client.minimized.js
+set destFile=./client/root/bundle-client.minimized.js
 
 call %browserifyPath% ^
-	-o %dest% ^
+	-o %destFile% ^
 	-v ^
 	-p "%nodeModulesPath%/bundle-collapser/plugin" ^
 	-g [ "%nodeModulesPath%/browserify-stringify-minimize-css-content" --minimizeExtensions [ .css ] ] ^
@@ -18,4 +18,4 @@ call %browserifyPath% ^
 	-r ./client/main-view.js:main-view ^
 	-r ./package.json:_package_json
 
-call "%terserPath%" %dest% -o %dest% -c -m
+call "%terserPath%" %destFile% -o %destFile% -c -m

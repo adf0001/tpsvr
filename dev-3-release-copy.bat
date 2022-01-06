@@ -1,22 +1,22 @@
 
-set dest=release\tpsvr
+set destDir=release\tpsvr
 
-xcopy server\tpsvr-main.bundle.minimized.js %dest%\server\ /d
-xcopy server\tpsvr-cli.js %dest%\server\ /d
-xcopy server\tpsvr-config.js %dest%\server\ /d
-xcopy server\res\*.* %dest%\server\res\ /d
+xcopy server\tpsvr-main.bundle.minimized.js %destDir%\server\ /d
+xcopy server\tpsvr-cli.js %destDir%\server\ /d
+xcopy server\tpsvr-config.js %destDir%\server\ /d
+xcopy server\res\*.* %destDir%\server\res\ /d
 
-xcopy bin\*.* %dest%\bin\ /d
+xcopy bin\*.* %destDir%\bin\ /d
 
-xcopy client\root\bundle-client.minimized.js %dest%\client\root\ /d
-xcopy client\root\favicon.ico %dest%\client\root\ /d
-xcopy client\root\index.html %dest%\client\root\ /d
-xcopy client\root\res\*.* %dest%\client\root\res\ /d
+xcopy client\root\bundle-client.minimized.js %destDir%\client\root\ /d
+xcopy client\root\favicon.ico %destDir%\client\root\ /d
+xcopy client\root\index.html %destDir%\client\root\ /d
+xcopy client\root\res\*.* %destDir%\client\root\res\ /d
 
-xcopy package.json %dest%\ /d
-xcopy README.md %dest%\ /d
-xcopy dev-2-server-run.bat %dest%\ /d
+xcopy package.json %destDir%\ /d
+xcopy README.md %destDir%\ /d
+xcopy dev-2-server-run.bat %destDir%\ /d
 
-if exist %dest%\output rmdir /s %dest%\output
+if exist %destDir%\output rmdir /s %destDir%\output
 
 pause

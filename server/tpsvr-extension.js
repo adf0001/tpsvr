@@ -4,17 +4,20 @@
 var url = require("url");
 var fs = require("fs");
 var path = require("path");
-var os = require("os");
+//var os = require("os");
 
 var response_tool = require("response-tool");
 var multiple_spawn = require("multiple-spawn");
 var response_long_poll_state = require("response-long-poll-state");
-var property_by_name_list = require("property-by-name-list");
+//var property_by_name_list = require("property-by-name-list");
 
 var _package_json = require("../package.json");
 
 var project_data = require("./lib/project-data.js");
 var state_tool = require("./lib/state-tool.js");
+var child_process = require("child_process");
+
+var shExt = process.platform.match(/^win/i) ? "bat" : "sh";
 
 var responseErrorOrData = function (res, error, data) {
 	if (error) console.log(error.message || error);
@@ -112,13 +115,13 @@ var startBundle = function (req, res, config) {
 	var prj = project_data.data[name];
 	if (!prj) { return responseErrorOrData(res, "project unfound, " + name); }
 
-	var bundleCmd = prj.path + "/test/test-bundle.bat";
+	var bundleCmd = prj.path + "/test/test-bundle." + shExt;
 	var bundleArgs = null;
 	var byShell = false;
 
 	if (!fs.existsSync(bundleCmd)) {
 		if (!fs.existsSync(prj.path + "/test/test-data.js")) {
-			return responseErrorOrData(res, "files unfound, test-bundle.bat, test-data.js, " + name);
+			return responseErrorOrData(res, "files unfound, test-bundle." + shExt + ", test-data.js, " + name);
 		}
 
 		byShell = true;
@@ -168,7 +171,7 @@ var tryMinimizeBundle = function (req, res, config) {
 	var prj = project_data.data[name];
 	if (!prj) { return responseErrorOrData(res, "project unfound, " + name); }
 
-	var minimizeCmd = prj.path + "/test/main-minimize.bat";
+	var minimizeCmd = prj.path + "/test/main-minimize." + shExt;
 	var minimizeArgs = null;
 	var byUserBatch = true;
 	var byShell = false;
@@ -339,26 +342,35 @@ var createBundleTool = function (req, res, config) {
 	var prj = project_data.data[name];
 	if (!prj) { return responseErrorOrData(res, "project unfound, " + name); }
 
-	if (fs.existsSync(prj.path + "/test/test-bundle.bat")) {
-		return responseErrorOrData(res, "file already exists, test/test-bundle.bat, " + name);
+	var destFile = prj.path + "/test/test-bundle." + shExt;
+
+	if (fs.existsSync(destFile)) {
+		return responseErrorOrData(res, "file already exists, test/test-bundle." + shExt + ", " + name);
 	}
 
-	var sFile = fs.readFileSync(__dirname + "/res/test-bundle-template.bat", 'utf-8');
+	var sFile = fs.readFileSync(__dirname + "/res/test-bundle-template." + shExt, 'utf-8');
 	sFile = sFile.replace(/\%tpsvrPath\%/g, path.normalize(__dirname + "/.."))
 		.replace(/\%moduleName\%/g, prj.config.name)
 		.replace(/\%moduleMainFile\%/g, prj.config.main)
 		;
 
-	if (os.type() === "Windows_NT") {
+	if (shExt === "bat") {
 		sFile = sFile.replace(/(\r\n|\n\r|\n|\r)/g, "\r\n");	//win7 bug: (bat utf8)+( not-ascii string )+(\r as line break )+(chcp 65001) => bat exec fail
 	}
 
 	//create ./test directory
 	if (!fs.existsSync(prj.path + "/test")) fs.mkdirSync(prj.path + "/test");
 
-	fs.writeFileSync(prj.path + "/test/test-bundle.bat", sFile, 'utf8');
+	fs.writeFileSync(destFile, sFile, 'utf8');
 
-	return responseResultFile(res, prj.path + "/test/test-bundle.bat");
+	//chmod +x for *.sh
+	if (shExt === "sh") {
+		child_process.exec("chmod +x " + destFile, (err, data) => {
+			if (err) console.log(err);
+		});
+	}
+
+	return responseResultFile(res, destFile);
 }
 
 var createMiniBundleTool = function (req, res, config) {
@@ -366,26 +378,35 @@ var createMiniBundleTool = function (req, res, config) {
 	var prj = project_data.data[name];
 	if (!prj) { return responseErrorOrData(res, "project unfound, " + name); }
 
-	if (fs.existsSync(prj.path + "/test/main-minimize.bat")) {
-		return responseErrorOrData(res, "file already exists, test/main-minimize.bat, " + name);
+	var destFile = prj.path + "/test/main-minimize." + shExt;
+
+	if (fs.existsSync(destFile)) {
+		return responseErrorOrData(res, "file already exists, test/main-minimize." + shExt + ", " + name);
 	}
 
-	var sFile = fs.readFileSync(__dirname + "/res/main-minimize-template.bat", 'utf-8');
+	var sFile = fs.readFileSync(__dirname + "/res/main-minimize-template." + shExt, 'utf-8');
 	sFile = sFile.replace(/\%tpsvrPath\%/g, path.normalize(__dirname + "/.."))
 		.replace(/\%moduleName\%/g, prj.config.name)
 		.replace(/\%moduleMainFile\%/g, prj.config.main)
 		;
 
-	if (os.type() === "Windows_NT") {
+	if (shExt === "bat") {
 		sFile = sFile.replace(/(\r\n|\n\r|\n|\r)/g, "\r\n");	//win7 bug: (bat utf8)+( not-ascii string )+(\r as line break )+(chcp 65001) => bat exec fail
 	}
 
 	//create ./test directory
 	if (!fs.existsSync(prj.path + "/test")) fs.mkdirSync(prj.path + "/test");
 
-	fs.writeFileSync(prj.path + "/test/main-minimize.bat", sFile, 'utf8');
+	fs.writeFileSync(destFile, sFile, 'utf8');
 
-	return responseResultFile(res, prj.path + "/test/main-minimize.bat");
+	//chmod +x for *.sh
+	if (shExt === "sh") {
+		child_process.exec("chmod +x " + destFile, (err, data) => {
+			if (err) console.log(err);
+		});
+	}
+
+	return responseResultFile(res, destFile);
 }
 
 var getLongPollState = function (req, res, config) {

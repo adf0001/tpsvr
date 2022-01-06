@@ -7,10 +7,10 @@ set watchifyPath=%nodeModulesPath%/.bin/watchify
 
 title watchify - tpsvr-client
 
-set dest=./client/root/bundle-client.debug.js
+set destFile=./client/root/bundle-client.debug.js
 
 %watchifyPath% ^
-	-o %dest% ^
+	-o %destFile% ^
 	-v ^
 	-g [ "%nodeModulesPath%/stringify" --extensions [.html .css .htm ] ] ^
 	-r ./node_modules/htm-tool:htm-tool ^

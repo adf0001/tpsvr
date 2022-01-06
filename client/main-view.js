@@ -314,13 +314,16 @@ module.exports = {
 
 	onClickMore: function () {
 		var _this = this;
+		var shExt = this.lastState.data.sys.platform;
+		shExt = (shExt && shExt.match(/^win/i)) ? "bat" : "sh";
+
 		var el = ht.ui.selectButtonList("project operations",
 			[
 				["createTestData", "<div style='text-align:left;' title='create test code, required.'>create file 'test-data.js'</div>"],
-				["createBundleTool", "<div style='text-align:left;' title='create test module bundle tool, optional.'>create file 'test-bundle.bat' (optional)</div>"],
+				["createBundleTool", "<div style='text-align:left;' title='create test module bundle tool, optional.'>create file 'test-bundle." + shExt + "' (optional)</div>"],
 				["createTestHtm", "<div style='text-align:left;' title='create test page, optional.'>create file 'test.htm' (optional)</div>"],
 				["tryMinimizeBundle", "<div style='text-align:left;' title='try bundling only main module, and minimize it.'>try minimize bundle</div>"],
-				["createMiniBundleTool", "<div style='text-align:left;' title='create main module minimize bundle tool, optional.'>create file 'main-minimize.bat' (optional)</div>"],
+				["createMiniBundleTool", "<div style='text-align:left;' title='create main module minimize bundle tool, optional.'>create file 'main-minimize." + shExt + "' (optional)</div>"],
 			],
 			{ maxHeight: "15em", },
 			function (err, data) {

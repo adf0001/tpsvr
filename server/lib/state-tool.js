@@ -57,6 +57,7 @@ var updateSys = function () {
 	versionState.update("sys", {
 		dirname: path.normalize(__dirname + "/.."),
 		server_file_exec: config.extension_server_file_exec,
+		platform: process.platform,
 	});
 }
 updateSys();

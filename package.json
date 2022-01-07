@@ -30,7 +30,7 @@
     "bundle-collapser": "^1.4.0",
     "delay-set-timeout": "^1.0.1",
     "easy-http-server": "^1.0.1",
-    "htm-tool": "^1.0.15",
+    "htm-tool": "^1.0.16",
     "http-request-text": "^1.0.5",
     "multiple-spawn": "^1.0.14",
     "open-url-by-browser": "^1.0.1",

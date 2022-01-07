@@ -15,6 +15,7 @@ module.exports = {
 			"top-bar.operate.more", ["on", "click", "onClickMore"],
 			".iframe-page", ["on", "load", "onIframeChange"],
 			"top-bar.browse-tool.vscode", ["on", "click", "onClickVscode"],
+			"top-bar.add-package", ["on", "click", "onClickAddPackage"],
 		],
 
 		init: "init",
@@ -132,13 +133,15 @@ module.exports = {
 	},
 
 	onIframeChange: function () {
-		var url = this.nme(".iframe-page").contentWindow.location.href;
+		var elIframe = this.nme(".iframe-page");
+
+		var url = elIframe.contentWindow.location.href;
 		this.nme("top-bar.address-link").textContent = decodeURIComponent(url);
 		this.nme("top-bar.address-link").href = url;
 
 		this.onTopbarResize();
 
-		var location = this.nme(".iframe-page").contentWindow.location;
+		var location = elIframe.contentWindow.location;
 		var pathname = location.pathname;
 
 		var viewType = this.getViewType();
@@ -148,6 +151,34 @@ module.exports = {
 		this.nme("top-bar.browse-tool").style.display = isBrowse ? "" : "none";
 		this.nme("go-back").style.display = isBrowseFile ? "" : "none";
 
+		//show add project button
+		var elAddPackage = this.nme("top-bar.add-package");
+		var enable = false;
+
+		if (url && url.match(/\/package\.json$/)) {
+			var pkg = JSON.parse(elIframe.contentWindow.document.body.textContent);
+			if (pkg.name && !(pkg.name in this.projectData)) {
+				enable = true;
+			}
+		}
+
+		elAddPackage.style.display = enable ? "" : "none";
+	},
+
+	onClickAddPackage: function () {
+		var name = this.lastSelected.textContent;
+		//console.log(this.projectData[name].path);
+		var url = this.nme(".iframe-page").contentWindow.location.href;
+
+		var path = this.projectData[name].path + url.slice(url.indexOf("/*/") + 2).replace(/package\.json$/, "");
+		//console.log(path);
+
+		ht.httpRequestJson("/?cmd=addProject&path=" + encodeURIComponent(path), "GET", "", "",
+			function (err, data) {
+				if (err) { ht.show_log(err.responseText || err); return; }
+			}
+		);
+		//this.nme("top-bar.add-package").style.display = "none";	//behaviour is somehow strange
 	},
 
 	onClickVscode: function () {

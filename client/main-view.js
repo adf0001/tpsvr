@@ -66,7 +66,7 @@ module.exports = {
 			}
 		);
 
-		this.getLongPollState();
+		setTimeout(function () { _this.getLongPollState(); }, 1000);		//fix bug: project list will be duplicated, if longPoll is received before listProject.
 	},
 
 	onClickProjectList: function (evt) {

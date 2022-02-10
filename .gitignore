@@ -6,3 +6,6 @@
 /server/lib/bak
 /release
 /client/root/bundle-client.debug.js
+/client/root/bundle-client.debug.latest-compatible.js
+/client/bak
+/client/root/res/bak

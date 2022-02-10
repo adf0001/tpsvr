@@ -95,13 +95,21 @@ function loadProjectFile(name, filePath, req, res, config) {
 	config.default_process(req, res, cfg);
 }
 
+var regBundleClient = /^\/bundle-client(\.[\w\-]+)?\.js$/;
+
 function getClientBundle(req, res, config) {
+	var mr = req.reqUrl.pathname.match(regBundleClient);
+	if (!mr) {
+		response_tool.error(res, "unfound client bundle, " + req.reqUrl.pathname, 404);
+		return true;
+	}
+
 	var cfg = Object.create(config);
-	cfg.filePath = __dirname + "/../client/root/bundle-client.debug.js";
+	cfg.filePath = __dirname + "/../client/root/bundle-client.debug" + (mr[1] || "") + ".js";
 	//console.log("getClientBundle")
 
 	if (!fs.existsSync(cfg.filePath)) {
-		cfg.filePath = __dirname + "/../client/root/bundle-client.minimized.js";
+		cfg.filePath = __dirname + "/../client/root/bundle-client.minimized" + (mr[1] || "") + ".js";
 	}
 	cfg.isRoot = false;
 
@@ -373,6 +381,33 @@ var createBundleTool = function (req, res, config) {
 	return responseResultFile(res, destFile);
 }
 
+var loadPackage = function (req, res, config) {
+	var name = decodeURIComponent(req.reqUrl.query.name);
+	var pathFrom = decodeURIComponent(req.reqUrl.query.path);
+
+	var pathParent, unfound = false, packagePath;
+	while (!fs.existsSync(packagePath = (pathFrom + "/node_modules/" + name + "/package.json"))) {
+		pathParent = path.normalize(pathFrom + "/..");
+		if (!pathParent || pathParent == pathFrom || pathParent.length >= pathFrom.length) { unfound = true; break; }
+		pathFrom = pathParent;
+		//console.log("pathFrom=" + pathFrom);
+	}
+
+	if (unfound) {
+		response_tool.error(res, "unfound, " + name, 404);
+		return true;
+	}
+
+	res.setHeader("package-path", encodeURIComponent(packagePath));		//HTTP/2 header in lowcase
+
+	var cfg = Object.create(config);
+	cfg.filePath = packagePath;
+	cfg.isRoot = false;
+
+	config.default_process(req, res, cfg);
+	return true;
+}
+
 var createMiniBundleTool = function (req, res, config) {
 	var name = decodeURIComponent(req.reqUrl.query.project);
 	var prj = project_data.data[name];
@@ -463,7 +498,8 @@ var cmdMap = {
 	"createBundleTool": createBundleTool,
 	"tryMinimizeBundle": tryMinimizeBundle,
 	"createMiniBundleTool": createMiniBundleTool,
-	"getClientBundle": getClientBundle,
+	//"getClientBundle": getClientBundle,
+	"loadPackage": loadPackage,
 };
 
 var projectDataLoaded = false;
@@ -481,12 +517,16 @@ module.exports = function (req, res, config) {
 	res.setHeader('Access-Control-Allow-Methods', "GET");
 	res.setHeader('Access-Control-Allow-Headers', "x-requested-with,content-type");
 
-	var reqUrl = url.parse(req.url, true);
+	var reqUrl = req.reqUrl = url.parse(req.url, true);
 
 	var mr = decodeURIComponent(reqUrl.pathname).match(/^\/([^\*\/]+)\/\*\/(.*$)/);
 	if (mr) {
 		loadProjectFile(mr[1], mr[2], req, res, config);
 		return true;
+	}
+
+	if (reqUrl.pathname && reqUrl.pathname.match(regBundleClient)) {
+		return getClientBundle(req, res, config);
 	}
 
 	if (reqUrl.pathname !== "/") return;
@@ -503,7 +543,6 @@ module.exports = function (req, res, config) {
 	};
 
 	if (query.cmd in cmdMap) {
-		req.reqUrl = reqUrl;
 		console.log("cmd=" + query.cmd + ", " + decodeURIComponent(reqUrl.search));
 		return cmdMap[query.cmd](req, res, config);
 	}

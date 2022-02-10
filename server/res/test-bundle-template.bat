@@ -5,7 +5,7 @@ chcp 65001
 set nodeModulesPath=%tpsvrPath%/node_modules
 set watchifyPath=%nodeModulesPath%/.bin/watchify
 
-title watchify - %moduleName%
+rem title watchify - %moduleName%
 
 if not exist ./bundle md bundle
 

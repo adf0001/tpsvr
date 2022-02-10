@@ -1,11 +1,9 @@
 <div name='project-list'
 	style='width:10em;position:absolute;left:0px;top:0px;bottom:0px;border-right:1px solid gray;overflow:auto;'>
 	<center>
+		<span style="float:right;"><span title='project tools' name='tool' class='ht entity btn'
+				style='font-size:9pt;vertical-align:top;margin:0.1em;'>&vellip;</span></span>
 		<span style='font-weight:bold;' name='title'>Projects</span>
-		<span name='tool' class='ht-cmd' title='project tools' style='text-decoration:none;display:inline-block;
-			border:1px solid gray;height:1.1em;border-radius:25%;vertical-align:middle;'>
-			•••
-		</span>
 	</center>
 	<div name='list' style='padding:0.5em;'></div>
 	<div style='font-size: 9pt;text-align:right;padding:0.5em;'>count: <i name='list-count'>0</i></div>
@@ -24,21 +22,19 @@
 			<span style='padding:0px 0.5em;'>|</span>
 			<label title='bundle the test module, and watch code change.'><input type=checkbox
 					name='bundle'>bundle</label>
-			<span name='more' class='ht-cmd' title='more operations' style='text-decoration:none;display:inline-block;
-				border:1px solid gray;height:1.1em;border-radius:25%;vertical-align:text-top;'>
-				•••
-			</span>
+			<span title='more operations' name='more' class='ht entity btn'
+				style='font-size:9pt;vertical-align:top;margin:0.1em;'>&vellip;</span>
 		</span>
 		<span name="browse-tool" style="display:none;">
 			<span style='padding:0px 0.5em;'>|</span>
-			<span class="ht-cmd" name='vscode' title='open with local VsCode'>
+			<span class="ht cmd" name='vscode' title='open with local VsCode'>
 				<img src='res/logo-vscode-32.png' border='0' style="height:1.2em;vertical-align:middle;">
 			</span>
 			<span name="file-exec"></span>
 		</span>
 		<span style='float:right;'>
-			<span class="ht-cmd" name='add-package' title='add package.json to project list'
-				style='margin-right:1em;'>add</span>
+			<span class="ht cmd" name='add-package' title='add package.json to project list'
+				style='margin-right:1em;display:none;'>add</span>
 			<span name='go-back' title='go back' onclick="history.go(-1);" style="display:none;cursor:pointer;">
 				<img border='0' src='res/arrow-left.png' style="height:1.2em;vertical-align:middle;" />
 			</span>
@@ -52,3 +48,4 @@
 </div>
 <div name='iframe-mask'
 	style="visibility:hidden;position:absolute;left:10em;top:1.5em;bottom:0px;right:0px;box-sizing:border-box;"></div>
+<div name='package-view'></div>

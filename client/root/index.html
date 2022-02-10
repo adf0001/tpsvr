@@ -12,7 +12,21 @@
 	<div id="div-fixed" style='position:fixed;left:0px;top:0px;right:0px;bottom:0px;'></div>
 </body>
 
-<script src='/?cmd=getClientBundle'></script>
+<script>
+	(function () {
+		var userAgent = navigator.userAgent;
+		var platform = navigator.platform;
+
+		var isLatestCompatible =
+			(userAgent.indexOf("compatible") > -1 && userAgent.indexOf("MSIE") > -1) ||		//ie < 11
+			(userAgent.indexOf('Trident') > -1 && userAgent.indexOf("rv:11.0") > -1) ||		//ie 11
+			(userAgent.indexOf('Safari') > -1 && !userAgent.match(/chrome/i) &&
+				platform.indexOf('Win') > -1)		//safari in windows, https://blog.csdn.net/xmy_wh/article/details/81060344
+			;
+
+		document.write("<" + "script src='/bundle-client" + (isLatestCompatible ? ".latest-compatible" : "") + ".js'><" + "/script>");
+	})();
+</script>
 
 <script>
 	window.onload = function () {

@@ -1,6 +1,7 @@
 
 var ht = require("htm-tool");
 var to_px_by_offset = require("to-px-by-offset");
+var explore_package = require("./explore-package.js");
 
 module.exports = {
 	config: {
@@ -21,7 +22,7 @@ module.exports = {
 		init: "init",
 	},
 
-	projectData: null,
+	projectData: null,		//map project name to {name,path,config}
 
 	lastSelected: null,
 
@@ -59,7 +60,7 @@ module.exports = {
 				ks.sort();
 				var i, a = [];
 				for (i = 0; i < ks.length; i++) {
-					a[a.length] = "<span class='ht-cmd' name=\"" + ks[i] + "\">" + ks[i] + "</span>";
+					a[a.length] = "<span class='ht cmd' name=\"" + ks[i] + "\">" + ks[i] + "</span>";
 				}
 				_this.nme("project-list.list").innerHTML = a.join("<br>");
 				_this.updateListCount();;
@@ -71,10 +72,10 @@ module.exports = {
 
 	onClickProjectList: function (evt) {
 		var el = evt.target;
-		if (el.tagName.toUpperCase() != "SPAN" || el.className.indexOf("ht-cmd") < 0) return;
+		if (el.tagName.toUpperCase() != "SPAN" || el.className.indexOf("cmd") < 0) return;
 
-		if (this.lastSelected) this.lastSelected.classList.remove("ht-selected");
-		el.classList.add("ht-selected");
+		if (this.lastSelected) this.lastSelected.classList.remove("selected");
+		el.classList.add("selected");
 		this.lastSelected = el;
 
 		this.nme("top-bar.operate").style.display = "";
@@ -326,7 +327,7 @@ module.exports = {
 					var elList = _this.nme("project-list.list");
 					ht.appendHtml(elList,
 						(elList.firstChild ? "<br>" : "") +		//add <br> if list already has children
-						"<span class='ht-cmd' name=\"" + name + "\">" + name + "</span>"
+						"<span class='ht cmd' name=\"" + name + "\">" + name + "</span>"
 					);
 					_this.updateListCount();
 				}
@@ -348,23 +349,26 @@ module.exports = {
 		var shExt = this.lastState.data.sys.platform;
 		shExt = (shExt && shExt.match(/^win/i)) ? "bat" : "sh";
 
-		var el = ht.ui.selectButtonList("project operations",
+		var el = ht.ui.selectButtonList("Project operations",
 			[
-				["createTestData", "<div style='text-align:left;' title='create test code, required.'>create file 'test-data.js'</div>"],
-				["createBundleTool", "<div style='text-align:left;' title='create test module bundle tool, optional.'>create file 'test-bundle." + shExt + "' (optional)</div>"],
-				["createTestHtm", "<div style='text-align:left;' title='create test page, optional.'>create file 'test.htm' (optional)</div>"],
-				["tryMinimizeBundle", "<div style='text-align:left;' title='try bundling only main module, and minimize it.'>try minimize bundle</div>"],
-				["createMiniBundleTool", "<div style='text-align:left;' title='create main module minimize bundle tool, optional.'>create file 'main-minimize." + shExt + "' (optional)</div>"],
+				["createTestData", "<div style='text-align:left;' title='create test code, required.'>Create file 'test-data.js'</div>"],
+				["createBundleTool", "<div style='text-align:left;' title='create test module bundle tool, optional.'>Create file 'test-bundle." + shExt + "' (optional)</div>"],
+				["createTestHtm", "<div style='text-align:left;' title='create test page, optional.'>Create file 'test.htm' (optional)</div>"],
+				["tryMinimizeBundle", "<div style='text-align:left;' title='try bundling only main module, and minimize it.'>Try minimize bundle</div>"],
+				["createMiniBundleTool", "<div style='text-align:left;' title='create main module minimize bundle tool, optional.'>Create file 'main-minimize." + shExt + "' (optional)</div>"],
 			],
 			{ maxHeight: "15em", },
 			function (err, data) {
 				if (!data) return;
 
+				/*
 				if (data === "createTestData") _this.createTestData();
 				else if (data === "createTestHtm") _this.createTestHtm();
 				else if (data === "createBundleTool") _this.createBundleTool();
 				else if (data === "tryMinimizeBundle") _this.tryMinimizeBundle();
 				else if (data === "createMiniBundleTool") _this.createMiniBundleTool();
+				*/
+				if (_this[data]) _this[data]();
 			}
 		)
 	},
@@ -391,21 +395,57 @@ module.exports = {
 	createMiniBundleTool: function () { this.sendProjectCmd("createMiniBundleTool"); },
 
 	onClickProjectTool: function () {
-		var a = [["addProject", "add project"]];
-
 		var name = (this.lastSelected && this.lastSelected.getAttribute("name")) || "";
-		if (name) a[a.length] = ["removeProject", "detach project / " + name];
+
+		var a = [
+			["addProject", "Add project"],
+			name ? ["removeProject", "Detach project / " + name] : null,
+			"-",
+			name ? ["explorePackage", "Explore package"] : null,
+		];
 
 		var _this = this;
-		ht.ui.selectButtonList("projects tool",
+		ht.ui.selectButtonList("Projects tool",
 			a,
 			function (err, data) {
 				if (!data) return;
 
+				/*
 				if (data === "addProject") _this.addProject();
 				else if (data === "removeProject") _this.removeProject();
+				else if (data === "exploreProject") _this.exploreProject();
+				*/
+
+				if (_this[data]) _this[data]();
 			}
 		)
+	},
+
+	packageView: null,
+
+	explorePackage: function () {
+
+		var el = this.nme(".package-view");
+		if (!this.packageView) {
+			el.innerHTML = "<div class='ht popup-body' style='min-width:30em;min-height:15em;'></div>";
+			this.packageView = new explore_package.class(el.firstChild);
+
+			var _this = this;
+			this.packageView.localUrlCallback = function (url) {
+				if (_this.getViewType() === "browse") {
+					_this.nme(".iframe-page").src = url;
+					return;
+				}
+
+				ht.ui.radio_group.setValue(_this.nme("top-bar.view-type"), "browse");
+				setTimeout(function () { _this.nme(".iframe-page").src = url; }, 200);
+			}
+		}
+
+		var name = this.lastSelected.getAttribute("name");
+		this.packageView.updateView(this.projectData[name]);
+
+		ht.popup.show(el, this.packageView.popupOptions);
 	},
 
 	unselectProject: function () {
@@ -450,5 +490,5 @@ module.exports = {
 };
 
 module.exports.class = function (el, cb) {
-	ht.bindUi(el, Object.create(module.exports), null, cb);
+	return ht.bindUi(el, Object.create(module.exports), null, cb);
 }

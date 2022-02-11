@@ -9,7 +9,7 @@ var package_project = require("./lib/package-project.js");
 var package_dependent = require("./lib/package-dependent.js");
 var ui_model_treeview = require("./lib/ui-model-treeview.js");
 
-var path_key = require("./lib/path-key.js");
+var semver_satisfies = require("semver/functions/satisfies.js");
 
 module.exports = {
 	config: {
@@ -53,16 +53,44 @@ module.exports = {
 
 	},
 
+	updateVersion: function (elArray, mainVer) {
+		if (!(elArray instanceof Array)) elArray = [elArray];
+
+		var i, imax = elArray.length, el, elVer, verMatch;
+		for (i = 0; i < imax; i++) {
+			el = ui_model_treeview.getNode(elArray[i]);
+			elVer = ui_model_treeview.nodePart(el, "pkg-version");
+
+			verMatch = semver_satisfies(mainVer, elVer.textContent);
+			elVer.style.color = verMatch ? "black" : "red";
+			elVer.title = verMatch ? "" : ('top version is ' + mainVer);
+		}
+	},
+
 	loadFromNode: function (elNode, cb) {
 		var elName = ui_model_treeview.nodeName(elNode);
 		var elVersion = ui_model_treeview.nodePart(elNode, 'pkg-version');
 		var _this = this;
 
-		this.projectData.load(this.getParentPath(elNode), elName.textContent, elVersion.textContent,
+		var name = elName.textContent;
+
+		var isNew = !this.projectData.get(name);
+
+		this.projectData.load(this.getParentPath(elNode), name, elVersion.textContent,
 			function (err, data) {
 				if (err) { cb(err, data); return; }
 
-				elNode.setAttribute("pkg-path", path_key(data.path));
+				elNode.setAttribute("pkg-path", ht.pathKey(data.path));
+
+				var mainPrj = _this.projectData.get(name);
+				_this.updateVersion(elNode, mainPrj.config.version);
+				if (isNew) {
+					//update unloaded nodes
+					var depItem = _this.packageDependent.data[name];
+					if (depItem) {
+						_this.updateVersion(Object.keys(depItem.ids), mainPrj.config.version);
+					}
+				}
 
 				if (package_json_tool.hasChildren(data.config)) {
 					if (!ui_model_treeview.nodeChildren(elNode)) {
@@ -143,7 +171,15 @@ module.exports = {
 
 		a[a.length] = "<span class='ht cmd tree-name'" + (isDevelope ? " style='color:black;'" : "") + ">" + name + "</span>";
 
-		a[a.length] = "<span class='pkg-version' style='margin-left:0.5em;color:gray;font-size:9pt;'>" + version + "</span>";
+		//check version
+		var prj = this.projectData.get(name);
+		var verMatch = prj ? semver_satisfies(prj.config.version, version) : prj;
+		var verColor = prj ? (verMatch ? "black" : "red") : "gray";
+		var verTitle = prj ? (verMatch ? "" : (" title='top version is " + prj.config.version + "'")) : "";
+
+		a[a.length] = "<span class='pkg-version' style='margin-left:0.5em;font-size:9pt;" +
+			"color:" + verColor + ";" + "'" + verTitle +
+			">" + version + "</span>";
 
 		a[a.length] = "<span class='pkg-dependent' style='margin-left:1em;font-size:9pt;'></span>";
 
@@ -246,7 +282,7 @@ module.exports = {
 			{ contentHtml: this.formatContent(topPkg.name, topPkg.version), }, true);
 
 		//console.log(topProject.path);
-		elRoot.setAttribute("pkg-path", path_key(topProject.path));
+		elRoot.setAttribute("pkg-path", ht.pathKey(topProject.path));
 
 		//children
 		this.addPackageChildren(elRoot, topProject);

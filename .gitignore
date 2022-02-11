@@ -9,3 +9,5 @@
 /client/root/bundle-client.debug.latest-compatible.js
 /client/bak
 /client/root/res/bak
+/client/lib/bak
+/.vscode

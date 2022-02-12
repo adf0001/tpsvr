@@ -3,7 +3,7 @@ var ht = require("htm-tool");
 var to_px_by_offset = require("to-px-by-offset");
 var package_json_to_html = require("./lib/package-json-to-html.js");
 
-var package_json_tool = require("./lib/package-json-tool.js");
+var package_json_tool = require("package-json-tool");
 
 var package_project = require("./lib/package-project.js");
 var package_dependent = require("./lib/package-dependent.js");
@@ -92,7 +92,7 @@ module.exports = {
 					}
 				}
 
-				if (package_json_tool.hasChildren(data.config)) {
+				if (package_json_tool.anyDependencies(data.config)) {
 					if (!ui_model_treeview.nodeChildren(elNode)) {
 						_this.addPackageChildren(elNode, data, false, true);
 					}
@@ -125,7 +125,7 @@ module.exports = {
 				this.loadFromNode(elNode, function (err, data) {
 					if (err) return;
 
-					if (package_json_tool.hasChildren(data.config)) {
+					if (package_json_tool.anyDependencies(data.config)) {
 						ui_model_treeview.setToExpandState(elNode, false);
 						ui_model_treeview.nodeChildren(elNode).style.display = "";
 					}
@@ -200,7 +200,7 @@ module.exports = {
 	addPackageChildren: function (elNode, project, isDevelope, hide) {
 		var pkg = project.config;
 
-		if (!package_json_tool.hasChildren(pkg)) {
+		if (!package_json_tool.anyDependencies(pkg)) {
 			ui_model_treeview.setToExpandState(elNode, "disable");
 			return;
 		}
@@ -212,7 +212,7 @@ module.exports = {
 			if (pkg.dependencies) {
 				this.addDependItems(elChildren, pkg.dependencies);
 			}
-			if (pkg.devDependencies && Object.keys(pkg.devDependencies).length > 0) {
+			if (package_json_tool.hasDependencies( pkg, "dev")) {
 				var html = "<div class='tree-delay'><span class='ht cmd pkg-dev' style='color:gray;margin-left:1em;text-decoration:none;'>... devDependencies</span></div>";
 				ui_model_treeview.addChild(elChildren, { html: html }, true);
 			}

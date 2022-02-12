@@ -1,7 +1,7 @@
 
 var ht = require("htm-tool");
 var to_px_by_offset = require("to-px-by-offset");
-var package_json_to_html = require("./lib/package-json-to-html.js");
+var package_json_to_html = require("package-json-to-html");
 
 var package_json_tool = require("package-json-tool");
 

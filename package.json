@@ -47,6 +47,7 @@
     "http-request-text": "^1.0.5",
     "multiple-spawn": "^1.0.14",
     "open-url-by-browser": "^1.0.1",
+    "package-json-to-html": "^1.0.1",
     "package-json-tool": "^1.0.1",
     "response-long-poll-state": "^1.0.4",
     "response-tool": "^1.0.4",

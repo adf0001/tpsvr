@@ -7,7 +7,7 @@ var package_json_tool = require("./lib/package-json-tool.js");
 
 var package_project = require("./lib/package-project.js");
 var package_dependent = require("./lib/package-dependent.js");
-var ui_model_treeview = require("./lib/ui-model-treeview.js");
+var ui_model_treeview = require("ui-model-treeview");
 
 var semver_satisfies = require("semver/functions/satisfies.js");
 

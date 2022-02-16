@@ -3,7 +3,7 @@
 
 var ht = require("htm-tool");
 
-var semver_satisfies = require("semver/functions/satisfies.js");
+var semver_satisfies = require("package-json-version-tool").satisfy;
 
 var packageProject = {
 

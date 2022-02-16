@@ -1,7 +1,8 @@
 
 //data set of package.json dependent.
 
-var ht = require("htm-tool");
+var ele = require("ele-tool");
+var ele_id = require("ele-id");
 
 var packageDependent = {
 	data: null,		//map name to {count, dependent:{parent->1},ids:{elId->1}}
@@ -16,7 +17,7 @@ var packageDependent = {
 		if (!depItem) depItem = this.data[name] = { count: 0, dependent: {}, ids: {} };
 
 		if (elDependent) {
-			depItem.ids[ht.eleId(elDependent)] = 1;
+			depItem.ids[ele_id(elDependent)] = 1;
 			this.formatEl(elDependent, depItem);
 		}
 
@@ -26,7 +27,7 @@ var packageDependent = {
 			if (depItem.count > 1) {
 				var i, el;
 				for (i in depItem.ids) {
-					el = ht(i);
+					el = ele(i);
 					this.formatEl(el, depItem);
 				}
 			}
@@ -38,7 +39,7 @@ var packageDependent = {
 	formatEl: function (elDependent, dependItem) {
 		if (dependItem.count < 2) return;
 
-		elDependent = ht(elDependent);
+		elDependent = ele(elDependent);
 
 		elDependent.title = "Dependents count: " + dependItem.count + "\n" + Object.keys(dependItem.dependent).join(", ");
 		elDependent.textContent = "[" + dependItem.count + "]";

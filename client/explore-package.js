@@ -1,13 +1,17 @@
 
-var ht = require("htm-tool");
+var width_splitter = require("htm-tool-ui/lib/width-splitter.js");
+
 var to_px_by_offset = require("to-px-by-offset");
 var package_json_to_html = require("package-json-to-html");
 
 var package_json_tool = require("package-json-tool");
 
-var package_project = require("./lib/package-project.js");
 var package_dependent = require("./lib/package-dependent.js");
 var ui_model_treeview = require("ui-model-treeview");
+var path_tool = require("path-tool");
+var bind_ui = require("bind-ui");
+
+require("htm-tool-css");	//require ht css
 
 var semver_satisfies = require("package-json-version-tool").satisfy;
 
@@ -23,7 +27,8 @@ module.exports = {
 		init: "init",
 	},
 
-	projectData: null,		//a package_project object
+	packageDataset: null,		//a package_json_data_set object, refer package-json-data-set @ npm
+
 	packageDependent: null,		//a package_dependent object
 
 	lastSelected: null,		//the name item of the tree-item
@@ -36,7 +41,7 @@ module.exports = {
 		to_px_by_offset.left(elSplitter);
 		elSplitter.style.left = Math.round(parseInt(elSplitter.style.left) - (elSplitter.offsetWidth / 2)) + "px";
 
-		ht.ui.width_splitter(elSplitter, this.nme('package-list'), null,
+		width_splitter(elSplitter, this.nme('package-list'), null,
 			[this.nme('info'),], null,
 			{
 				min: 50,
@@ -74,25 +79,25 @@ module.exports = {
 
 		var name = elName.textContent;
 
-		var isNew = !this.projectData.get(name);
+		var isNew = !this.packageDataset.get(name);
 
-		this.projectData.load(this.getParentPath(elNode), name, elVersion.textContent,
+		this.packageDataset.load(this.getParentPath(elNode), name, elVersion.textContent,
 			function (err, data) {
 				if (err) { cb(err, data); return; }
 
-				elNode.setAttribute("pkg-path", ht.pathKey(data.path));
+				elNode.setAttribute("pkg-path", path_tool.keyString(data.path));
 
-				var mainPrj = _this.projectData.get(name);
-				_this.updateVersion(elNode, mainPrj.config.version);
+				var mainItem = _this.packageDataset.get(name);
+				_this.updateVersion(elNode, mainItem.pkg.version);
 				if (isNew) {
 					//update unloaded nodes
 					var depItem = _this.packageDependent.data[name];
 					if (depItem) {
-						_this.updateVersion(Object.keys(depItem.ids), mainPrj.config.version);
+						_this.updateVersion(Object.keys(depItem.ids), mainItem.pkg.version);
 					}
 				}
 
-				if (package_json_tool.anyDependencies(data.config)) {
+				if (package_json_tool.anyDependencies(data.pkg)) {
 					if (!ui_model_treeview.nodeChildren(elNode)) {
 						_this.addPackageChildren(elNode, data, false, true);
 					}
@@ -125,7 +130,7 @@ module.exports = {
 				this.loadFromNode(elNode, function (err, data) {
 					if (err) return;
 
-					if (package_json_tool.anyDependencies(data.config)) {
+					if (package_json_tool.anyDependencies(data.pkg)) {
 						ui_model_treeview.setToExpandState(elNode, false);
 						ui_model_treeview.nodeChildren(elNode).style.display = "";
 					}
@@ -136,7 +141,7 @@ module.exports = {
 		else if (el.classList.contains("pkg-dev")) {
 			var elNode = ui_model_treeview.getNode(el.parentNode.parentNode);
 			var elName = ui_model_treeview.nodeName(elNode);
-			this.addPackageChildren(elNode, this.projectData.get(elName.textContent), true);
+			this.addPackageChildren(elNode, this.packageDataset.get(elName.textContent), true);
 			return;
 		}
 		else if (el.classList.contains("tree-name")) {
@@ -160,7 +165,7 @@ module.exports = {
 		return elParent && elParent.getAttribute("pkg-path");
 	},
 
-	formatContent: function (name, version, toExpand, isDevelope) {
+	formatContent: function (name, versionText, toExpand, isDevelope) {
 		var a = [];
 
 		a[a.length] = "<span" +
@@ -172,14 +177,16 @@ module.exports = {
 		a[a.length] = "<span class='ht cmd tree-name'" + (isDevelope ? " style='color:black;'" : "") + ">" + name + "</span>";
 
 		//check version
-		var prj = this.projectData.get(name);
-		var verMatch = prj ? semver_satisfies(prj.config.version, version) : prj;
-		var verColor = prj ? (verMatch ? "black" : "red") : "gray";
-		var verTitle = prj ? (verMatch ? "" : (" title='top version is " + prj.config.version + "'")) : "";
+		var pkgItem = this.packageDataset.get(name);
+
+		var verMatch = pkgItem ? semver_satisfies(pkgItem.pkg.version, versionText) : null;
+
+		var verColor = pkgItem ? (verMatch ? "black" : "red") : "gray";
+		var verTitle = pkgItem ? (verMatch ? "" : (" title='top version is " + pkgItem.pkg.version + "'")) : "";
 
 		a[a.length] = "<span class='pkg-version' style='margin-left:0.5em;font-size:9pt;" +
 			"color:" + verColor + ";" + "'" + verTitle +
-			">" + version + "</span>";
+			">" + versionText + "</span>";
 
 		a[a.length] = "<span class='pkg-dependent' style='margin-left:1em;font-size:9pt;'></span>";
 
@@ -197,8 +204,8 @@ module.exports = {
 		}
 	},
 
-	addPackageChildren: function (elNode, project, isDevelope, hide) {
-		var pkg = project.config;
+	addPackageChildren: function (elNode, pkgItem, isDevelope, hide) {
+		var pkg = pkgItem.pkg;
 
 		if (!package_json_tool.anyDependencies(pkg)) {
 			ui_model_treeview.setToExpandState(elNode, "disable");
@@ -212,7 +219,7 @@ module.exports = {
 			if (pkg.dependencies) {
 				this.addDependItems(elChildren, pkg.dependencies);
 			}
-			if (package_json_tool.hasDependencies( pkg, "dev")) {
+			if (package_json_tool.hasDependencies(pkg, "dev")) {
 				var html = "<div class='tree-delay'><span class='ht cmd pkg-dev' style='color:gray;margin-left:1em;text-decoration:none;'>... devDependencies</span></div>";
 				ui_model_treeview.addChild(elChildren, { html: html }, true);
 			}
@@ -235,22 +242,24 @@ module.exports = {
 		}
 	},
 
-	updateInfo: function (project) {
+	updateInfo: function (pkgItem) {
+		var isDirect = this.packageDataset.isDirect(pkgItem);
+
 		var opt = {
-			packageDir: project.path,
-			rootPackageDir: this.projectData.top.path,
-			packageDirUrl: ("/" + this.projectData.top.name + "/\*\/" +
-				project.path.slice(this.projectData.top.path.length) + "/")
+			packageDir: pkgItem.path,
+			rootPackageDir: this.packageDataset.top.path,
+			packageDirUrl: ("/" + this.packageDataset.top.name + "/\*\/" +
+				pkgItem.path.slice(this.packageDataset.top.path.length) + "/")
 				.replace(/\\/g, "/").replace(/\/+/g, "/"),
 
 			localLabel: "tpsvr",
 			localLabelTitle: "open in tpsvr ui",
 
-			versionStyle: this.projectData.isDirect(project) ? "" : "color:red;",
+			versionStyle: isDirect ? "" : "color:red;",
 		};
 
 		this.nme('info').innerHTML = "<div style='overflow:auto;height:100%;white-space:nowrap;'>" +
-			package_json_to_html(project.config, opt) + "</div>";
+			package_json_to_html(pkgItem.pkg, opt) + "</div>";
 	},
 
 	onInfoResize: function () {
@@ -262,15 +271,12 @@ module.exports = {
 
 	popupOptions: { dragMode: "first", maximized: true },	//default popup options
 
-	updateView: function (topProject) {
-		var topPkg = topProject.config;
+	updateView: function (packageDataset) {
 
 		var elList = this.nme('package-list.list');
 
-		//update package data every time, to avoid load sub package from other top project
-		if (!this.projectData || !this.projectData.isTop(topProject)) {
-			this.projectData = new package_project.class(topProject);
-		}
+		this.packageDataset = packageDataset;
+
 		this.packageDependent = new package_dependent.class();
 
 		this.lastSelected = null;
@@ -278,20 +284,23 @@ module.exports = {
 		//add root
 		elList.innerHTML = "";
 
+		var topItem = packageDataset.top;
+		var topPkg = topItem.pkg;
+
 		var elRoot = ui_model_treeview.addChild(elList,
 			{ contentHtml: this.formatContent(topPkg.name, topPkg.version), }, true);
 
-		//console.log(topProject.path);
-		elRoot.setAttribute("pkg-path", ht.pathKey(topProject.path));
+		//console.log(topItem.path);
+		elRoot.setAttribute("pkg-path", path_tool.keyString(topItem.path));
 
 		//children
-		this.addPackageChildren(elRoot, topProject);
+		this.addPackageChildren(elRoot, topItem);
 
 		//info
-		this.updateInfo(topProject);
+		this.updateInfo(topItem);
 	},
 };
 
 module.exports.class = function (el, cb) {
-	return ht.bindUi(el, Object.create(module.exports), null, cb);
+	return bind_ui(el, Object.create(module.exports), null, cb);
 }

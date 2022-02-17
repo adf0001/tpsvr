@@ -3,6 +3,8 @@ var ht = require("htm-tool");
 var to_px_by_offset = require("to-px-by-offset");
 var explore_package = require("./explore-package.js");
 
+var package_json_data_set = require("package-json-data-set");
+
 module.exports = {
 	config: {
 		htmlText: require("./main-view.htm"),
@@ -423,6 +425,25 @@ module.exports = {
 
 	packageView: null,
 
+	packageDataset: null,
+
+	loadPackage: function (pathFrom, name, cb) {
+		ht.httpRequestJson("/?cmd=loadPackage&name=" + encodeURIComponent(name) +
+			"&path=" + encodeURIComponent(pathFrom), "GET", "", "",
+			function (err, data) {
+				if (err) { ht.show_log(err.responseText || err); cb(err); return; }
+
+				var packagePath = decodeURIComponent(data.headers["package-path"]);
+				packagePath = ht.dirPart(packagePath, true);
+				//console.log(packagePath);
+
+				cb(null, { path: packagePath, pkg: data.responseJson });
+			}
+		);
+	},
+
+	_loadPackage: null,		//bind .loadPackage() with this
+
 	explorePackage: function () {
 
 		var el = this.nme(".package-view");
@@ -443,7 +464,16 @@ module.exports = {
 		}
 
 		var name = this.lastSelected.getAttribute("name");
-		this.packageView.updateView(this.projectData[name]);
+		var prj = this.projectData[name];
+
+		//update package data every time, to avoid load sub package from other top project
+		if (!this.packageDataset || !this.packageDataset.isTop({ pkg: prj.config, path: prj.path }, true)) {
+			this.packageDataset = new package_json_data_set.class(prj.config, prj.path,
+				this._loadPackage || (this._loadPackage = this.loadPackage.bind(this))
+			);
+		}
+
+		this.packageView.updateView(this.packageDataset);
 
 		ht.popup.show(el, this.packageView.popupOptions);
 	},

@@ -14,7 +14,7 @@
   "author": "fwg",
   "license": "ISC",
   "bin": {
-    "tpsvr": "bin/cmd.js"
+    "tpsvr": "application/bin/cmd.js"
   },
   "repository": {
     "type": "git",

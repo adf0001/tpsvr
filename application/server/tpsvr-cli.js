@@ -169,6 +169,8 @@ cq(null, [
 				}
 
 				var startArgs = [
+					"-w",
+					__dirname,
 					"-i",
 					__dirname + "/../../node_modules," +
 					__dirname + "/../../output," +

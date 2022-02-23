@@ -125,7 +125,7 @@ module.exports = {
 
 	onTopbarResize: function () {
 		var elTopbar = this.nme("top-bar");
-		var h = elTopbar.scrollHeight + 1;
+		var h = elTopbar.scrollHeight + 2;	//chrome: scrolling up textarea will cover top horizontal line
 		var elFrame = this.nme(".iframe-page").parentNode;
 		var elFrameMask = this.nme('iframe-mask');
 		if (Math.abs(parseInt(elFrame.style.top) - h) > 1) {

@@ -95,7 +95,7 @@ module.exports = {
 	lastFrameUrl: "",
 	lastFrameTime: 0,	//to avoid multiple events from 1 click, but accept refreshing page on click.
 
-	onClickRefreshView:function(){
+	onClickRefreshView: function () {
 		this.updateProjectView();
 	},
 
@@ -407,8 +407,10 @@ module.exports = {
 		var a = [
 			["addProject", "Add project"],
 			name ? ["removeProject", "Detach project / " + name] : null,
+			//"-",
+			name ? ["explorePackage", "Explore package / " + name] : null,
 			"-",
-			name ? ["explorePackage", "Explore package"] : null,
+			["reloadProject", "Reload all projects"],
 		];
 
 		var _this = this;
@@ -476,7 +478,7 @@ module.exports = {
 			this.packageDataset = new package_json_data_set.class(prj.config, prj.path,
 				this._loadPackage || (this._loadPackage = this.loadPackage.bind(this))
 			);
-			
+
 			this.explorePackageView.updateView(this.packageDataset);
 		}
 
@@ -508,6 +510,15 @@ module.exports = {
 			);
 		});
 
+	},
+
+	reloadProject: function () {
+		ht.httpRequestJson("/?cmd=reloadProject", "GET", "", "",
+			function (err, data) {
+				if (err) { ht.show_log(err.responseText || err); return; }
+				window.location.reload();
+			}
+		);
 	},
 
 	addProject: function () {

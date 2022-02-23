@@ -72,6 +72,11 @@ var listProject = function (req, res, config) {
 	else return responseErrorOrData(res, null, project_data.data);
 }
 
+var reloadProject = function (req, res, config) {
+	project_data.load();
+	return responseErrorOrData(res, null, project_data.data);
+}
+
 function loadProjectFile(name, filePath, req, res, config) {
 	var prj = project_data.data[name];
 	if (!prj) {
@@ -489,6 +494,7 @@ var cmdMap = {
 	"addProject": addProject,
 	"removeProject": removeProject,
 	"listProject": listProject,
+	"reloadProject": reloadProject,
 	"startBundle": startBundle,
 	"stopBundle": stopBundle,
 	"viewConsole": viewConsole,

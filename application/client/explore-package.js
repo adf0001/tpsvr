@@ -31,7 +31,7 @@ explorePackage = {
 
 	onClickRefresh: function () {
 		this.updateView(this.packageDataset);
-		this.nme(".package-view").firstChild.firstChild.scrollIntoView();
+		this.nme(".package-view").firstChild.scrollTop = 0;
 	},
 
 	onInfoResize: function () {

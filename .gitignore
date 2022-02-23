@@ -11,3 +11,6 @@
 /application/client/root/res/bak
 /application/client/lib/bak
 /.vscode
+/application/client/root/bundle-client.minimized.js
+/application/server/tpsvr-main.bundle.js
+/application/server/tpsvr-main.bundle.minimized.js

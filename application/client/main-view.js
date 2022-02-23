@@ -19,6 +19,7 @@ module.exports = {
 			".iframe-page", ["on", "load", "onIframeChange"],
 			"top-bar.browse-tool.vscode", ["on", "click", "onClickVscode"],
 			"top-bar.add-package", ["on", "click", "onClickAddPackage"],
+			"top-bar.refresh-view", ["on", "click", "onClickRefreshView"],
 		],
 
 		init: "init",
@@ -93,6 +94,10 @@ module.exports = {
 
 	lastFrameUrl: "",
 	lastFrameTime: 0,	//to avoid multiple events from 1 click, but accept refreshing page on click.
+
+	onClickRefreshView:function(){
+		this.updateProjectView();
+	},
 
 	updateProjectView: function (evt) {
 		//skip from <label>, accept only from <input>

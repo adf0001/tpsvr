@@ -13,7 +13,7 @@ var argv_config = require("argv-config");
 
 var default_tpsvr_config = require("./tpsvr-config.js");
 
-var _package_json = require("../package.json");
+var _package_json = require("../../package.json");
 
 //config
 
@@ -170,8 +170,8 @@ cq(null, [
 
 				var startArgs = [
 					"-i",
-					__dirname + "/../node_modules," +
-					__dirname + "/../output," +
+					__dirname + "/../../node_modules," +
+					__dirname + "/../../output," +
 					__dirname + "/../client",
 					"-RV",
 					"--", mainFile, "--cwd", process.cwd(), "--by-supervisor",

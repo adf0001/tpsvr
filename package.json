@@ -2,7 +2,7 @@
   "name": "tpsvr",
   "version": "1.0.1",
   "description": "test page server",
-  "main": "server/tpsvr-main.js",
+  "main": "application/server/tpsvr-main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

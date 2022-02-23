@@ -11,7 +11,7 @@ var save = function () {
 	var i, a = [];
 	for (i in data) { a[a.length] = data[i].path; }
 	a.sort();
-	var saveDir = __dirname + "/../../output";
+	var saveDir = __dirname + "/../../../output";
 
 	if (!fs.existsSync(saveDir)) {
 		fs.mkdirSync(saveDir);
@@ -20,7 +20,7 @@ var save = function () {
 }
 
 var load = function () {
-	var loadFile = path.normalize(__dirname + "/../../output/project-list.json");
+	var loadFile = path.normalize(__dirname + "/../../../output/project-list.json");
 	//console.log(__dirname, loadFile);
 
 	if (!fs.existsSync(loadFile)) return;

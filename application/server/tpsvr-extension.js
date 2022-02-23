@@ -11,7 +11,7 @@ var multiple_spawn = require("multiple-spawn");
 var response_long_poll_state = require("response-long-poll-state");
 //var property_by_name_list = require("property-by-name-list");
 
-var _package_json = require("../package.json");
+var _package_json = require("../../package.json");
 
 var project_data = require("./lib/project-data.js");
 var state_tool = require("./lib/state-tool.js");

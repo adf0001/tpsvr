@@ -2,9 +2,9 @@ rem tool from tpsvr @ npm
 
 chcp 65001
 
-cd server
+cd application/server
 
-set nodeModulesPath=../node_modules
+set nodeModulesPath=../../node_modules
 set browserifyPath=%nodeModulesPath%/.bin/browserify
 set terserPath=%nodeModulesPath%/.bin/terser
 
@@ -22,4 +22,4 @@ call %browserifyPath% ^
 
 call "%terserPath%" %destDir% -o %destDir% -c -m
 
-cd ..
+cd ../..

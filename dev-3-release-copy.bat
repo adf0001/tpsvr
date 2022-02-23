@@ -1,17 +1,17 @@
 
 set destDir=release\tpsvr
 
-xcopy server\tpsvr-main.bundle.minimized.js %destDir%\server\ /d
-xcopy server\tpsvr-cli.js %destDir%\server\ /d
-xcopy server\tpsvr-config.js %destDir%\server\ /d
-xcopy server\res\*.* %destDir%\server\res\ /d
+xcopy application\server\tpsvr-main.bundle.minimized.js %destDir%\application\server\ /d
+xcopy application\server\tpsvr-cli.js %destDir%\application\server\ /d
+xcopy application\server\tpsvr-config.js %destDir%\application\server\ /d
+xcopy application\server\res\*.* %destDir%\application\server\res\ /d
 
-xcopy bin\*.* %destDir%\bin\ /d
+xcopy application\bin\*.* %destDir%\application\bin\ /d
 
-xcopy client\root\bundle-client.minimized.js %destDir%\client\root\ /d
-xcopy client\root\favicon.ico %destDir%\client\root\ /d
-xcopy client\root\index.html %destDir%\client\root\ /d
-xcopy client\root\res\*.* %destDir%\client\root\res\ /d
+xcopy application\client\root\bundle-client.minimized.js %destDir%\application\client\root\ /d
+xcopy application\client\root\favicon.ico %destDir%\application\client\root\ /d
+xcopy application\client\root\index.html %destDir%\application\client\root\ /d
+xcopy application\client\root\res\*.* %destDir%\application\client\root\res\ /d
 
 xcopy package.json %destDir%\ /d
 xcopy README.md %destDir%\ /d

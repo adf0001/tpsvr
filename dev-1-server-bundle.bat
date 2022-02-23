@@ -2,9 +2,9 @@ rem tool from tpsvr @ npm
 
 chcp 65001
 
-cd server
+cd application/server
 
-set nodeModulesPath=../node_modules
+set nodeModulesPath=../../node_modules
 set watchifyPath=%nodeModulesPath%/.bin/watchify
 
 title watchify - tpsvr-server
@@ -19,4 +19,4 @@ call %watchifyPath% ^
 	-g [ "%nodeModulesPath%/stringify" --extensions [.html .css .htm ] ] ^
 	--node
 
-cd ..
+cd ../..

@@ -7,7 +7,7 @@ set watchifyPath=%nodeModulesPath%/.bin/watchify
 
 title watchify - tpsvr-client latest-compatible
 
-set destFile=./client/root/bundle-client.debug.latest-compatible.js
+set destFile=./application/client/root/bundle-client.debug.latest-compatible.js
 
 set babelifyPluginsForLatestCompatible= ^
 	%nodeModulesPath%/@babel/plugin-transform-arrow-functions ^
@@ -26,7 +26,7 @@ set babelifyPluginsForLatestCompatible= ^
 	-v ^
 	-g [ "%nodeModulesPath%/stringify" --extensions [.html .css .htm ] ] ^
 	-g [ "%nodeModulesPath%/babelify" --plugins [ %babelifyPluginsForLatestCompatible% ] ] ^
-	-e ./client/for-latest-compatible-bundle.js ^
+	-e ./application/client/for-latest-compatible-bundle.js ^
 	-r ./node_modules/htm-tool:htm-tool ^
-	-r ./client/main-view.js:main-view ^
+	-r ./application/client/main-view.js:main-view ^
 	-r ./package.json:_package_json

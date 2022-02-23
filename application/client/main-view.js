@@ -423,7 +423,7 @@ module.exports = {
 		)
 	},
 
-	packageView: null,
+	explorePackageView: null,
 
 	packageDataset: null,
 
@@ -447,12 +447,12 @@ module.exports = {
 	explorePackage: function () {
 
 		var el = this.nme(".package-view");
-		if (!this.packageView) {
+		if (!this.explorePackageView) {
 			el.innerHTML = "<div class='ht popup-body' style='min-width:30em;min-height:15em;'></div>";
-			this.packageView = new explore_package.class(el.firstChild);
+			this.explorePackageView = new explore_package.class(el.firstChild);
 
 			var _this = this;
-			this.packageView.localUrlCallback = function (url) {
+			this.explorePackageView.localUrlCallback = function (url) {
 				if (_this.getViewType() === "browse") {
 					_this.nme(".iframe-page").src = url;
 					return;
@@ -471,11 +471,12 @@ module.exports = {
 			this.packageDataset = new package_json_data_set.class(prj.config, prj.path,
 				this._loadPackage || (this._loadPackage = this.loadPackage.bind(this))
 			);
+			
+			this.explorePackageView.updateView(this.packageDataset);
 		}
 
-		this.packageView.updateView(this.packageDataset);
 
-		ht.popup.show(el, this.packageView.popupOptions);
+		ht.popup.show(el, this.explorePackageView.popupOptions);
 	},
 
 	unselectProject: function () {

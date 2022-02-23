@@ -138,7 +138,7 @@ var startBundle = function (req, res, config) {
 		if (!fs.existsSync(prj.path + "/test")) fs.mkdirSync(prj.path + "/test");
 		if (!fs.existsSync(prj.path + "/test/bundle")) fs.mkdirSync(prj.path + "/test/bundle");
 
-		bundleCmd = path.normalize(__dirname + "/../node_modules/.bin/watchify");
+		bundleCmd = path.normalize(__dirname + "/../../node_modules/.bin/watchify");
 		bundleArgs = [
 			"-v ",
 			"-o", prj.path + "/test/bundle/test-bundle.js",
@@ -193,7 +193,7 @@ var tryMinimizeBundle = function (req, res, config) {
 		if (!fs.existsSync(prj.path + "/test/bundle")) fs.mkdirSync(prj.path + "/test/bundle");
 
 		//step 1: browserify
-		minimizeCmd = path.normalize(__dirname + "/../node_modules/.bin/browserify");
+		minimizeCmd = path.normalize(__dirname + "/../../node_modules/.bin/browserify");
 		minimizeArgs = [
 			"-v ",
 			"-o", prj.path + "/test/bundle/main-bundle-minimized.js",
@@ -224,7 +224,7 @@ var tryMinimizeBundle = function (req, res, config) {
 				}
 
 				//step 2: terser
-				minimizeCmd = path.normalize(__dirname + "/../node_modules/.bin/terser");
+				minimizeCmd = path.normalize(__dirname + "/../../node_modules/.bin/terser");
 				minimizeArgs = [
 					prj.path + "/test/bundle/main-bundle-minimized.js",
 					"-o", prj.path + "/test/bundle/main-bundle-minimized.js",

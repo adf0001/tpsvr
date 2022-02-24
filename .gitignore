@@ -8,7 +8,7 @@
 /release
 /application/client/root/bak
 /application/client/root/bundle-client.debug.latest-compatible.js
-/application/client/root/bundle-client.minimized.js
+/application/client/root/bundle-client.debug.js
 /application/client/root/res/bak
 /application/client/bak
 /application/client/lib/bak

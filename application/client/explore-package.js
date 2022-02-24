@@ -20,13 +20,11 @@ explorePackage = {
 		this.packageView = package_json_explore_view.class(this.nme("package-view"));
 	},
 
-	localUrlCallback: null,
+	setLocalLabel: function (label, title, clickListener) {
+		this.packageView.localLabel = label;
+		this.packageView.localLabelTitle = title;
 
-	onClickInfo: function (evt) {
-		if (evt.target.classList.contains("local-label")) {
-			var url = evt.target.previousSibling.href;
-			if (url && this.localUrlCallback) this.localUrlCallback(url);
-		}
+		if (clickListener) this.packageView.nme(".info").addEventListener("click", clickListener);
 	},
 
 	onClickRefresh: function () {

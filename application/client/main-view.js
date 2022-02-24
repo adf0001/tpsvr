@@ -448,7 +448,6 @@ module.exports = {
 			}
 		);
 	},
-
 	_loadPackage: null,		//bind .loadPackage() with this
 
 	explorePackage: function () {
@@ -458,16 +457,21 @@ module.exports = {
 			el.innerHTML = "<div class='ht popup-body' style='min-width:30em;min-height:15em;'></div>";
 			this.explorePackageView = new explore_package.class(el.firstChild);
 
-			var _this = this;
-			this.explorePackageView.localUrlCallback = function (url) {
-				if (_this.getViewType() === "browse") {
-					_this.nme(".iframe-page").src = url;
-					return;
-				}
+			var _this=this;
+			this.explorePackageView.setLocalLabel("tpsvr","open in tpsvr ui",
+				function(evt){
+					if (!evt.target.classList.contains("local-label")) return;
+					
+					var url = evt.target.previousSibling.href;
+					if (!url) return;
 
-				ht.ui.radio_group.setValue(_this.nme("top-bar.view-type"), "browse");
-				setTimeout(function () { _this.nme(".iframe-page").src = url; }, 200);
-			}
+					if (_this.getViewType() === "browse") {
+						ht.ui.radio_group.setValue(_this.nme("top-bar.view-type"), "browse");
+					}
+	
+					setTimeout(function () { _this.nme(".iframe-page").src = url; }, 200);
+				}
+			);
 		}
 
 		var name = this.lastSelected.getAttribute("name");

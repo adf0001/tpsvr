@@ -20,7 +20,7 @@ var _package_json = require("../../package.json");
 var helpList = [
 	"test-page-server cli, v" + _package_json.version,
 	"",
-	"Usgae: tpsvr [options]",
+	"Usage: tpsvr [options]",
 	"",
 	"The default behaviour is trying",
 	"	to start test-page-server in foreground,",

@@ -67,8 +67,8 @@
 			if (typeof ret !== "undefined") setOk(name, !ret);
 		}
 		catch (ex) {
-			console.log(ex);
-			_ele('divResult').textContent = ex;
+			console.error(ex);
+			_ele('divResult').textContent = "exception: " + ex;
 			if (("" + (ex.message || ex)).match(/^disable\b/)) setOk(name, "disable");
 			return;
 		}

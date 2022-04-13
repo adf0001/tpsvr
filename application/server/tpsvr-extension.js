@@ -362,7 +362,7 @@ var createBundleTool = function (req, res, config) {
 	}
 
 	var sFile = fs.readFileSync(__dirname + "/res/test-bundle-template." + shExt, 'utf-8');
-	sFile = sFile.replace(/\%tpsvrPath\%/g, path.normalize(__dirname + "/.."))
+	sFile = sFile.replace(/\%tpsvrPath\%/g, path.normalize(__dirname + "/../.."))
 		.replace(/\%moduleName\%/g, prj.config.name)
 		.replace(/\%moduleMainFile\%/g, prj.config.main)
 		;
@@ -425,7 +425,7 @@ var createMiniBundleTool = function (req, res, config) {
 	}
 
 	var sFile = fs.readFileSync(__dirname + "/res/main-minimize-template." + shExt, 'utf-8');
-	sFile = sFile.replace(/\%tpsvrPath\%/g, path.normalize(__dirname + "/.."))
+	sFile = sFile.replace(/\%tpsvrPath\%/g, path.normalize(__dirname + "/../.."))
 		.replace(/\%moduleName\%/g, prj.config.name)
 		.replace(/\%moduleMainFile\%/g, prj.config.main)
 		;

@@ -20,6 +20,7 @@ module.exports = {
 			"top-bar.browse-tool.vscode", ["on", "click", "onClickVscode"],
 			"top-bar.add-package", ["on", "click", "onClickAddPackage"],
 			"top-bar.refresh-view", ["on", "click", "onClickRefreshView"],
+			"top-bar.operate.bundle-count", ["on", "click", "onClickBundleCount"],
 		],
 
 		init: "init",
@@ -71,6 +72,14 @@ module.exports = {
 		);
 
 		setTimeout(function () { _this.getLongPollState(); }, 1000);		//fix bug: project list will be duplicated, if longPoll is received before listProject.
+	},
+
+	onClickBundleCount: function (evt) {
+		var el = this.nme("project-list.list").querySelector("span.state-bundle");
+		if (!el) return;
+
+		el.scrollIntoView();
+		this.onClickProjectList({ target: el });
 	},
 
 	onClickProjectList: function (evt) {
@@ -292,6 +301,13 @@ module.exports = {
 		this.lastState.version = state.version;
 
 		this.updateSelectedBundleState();
+
+		//update bundle count
+		if (state.version.bundle) {
+			var cnt = Object.keys(state.data.bundle).length;
+			var el = this.nme("top-bar.operate.bundle-count");
+			el.innerHTML = (cnt > 0) ? ("(" + cnt + ")") : "";
+		}
 	},
 
 
@@ -457,18 +473,18 @@ module.exports = {
 			el.innerHTML = "<div class='ht popup-body' style='min-width:30em;min-height:15em;'></div>";
 			this.explorePackageView = new explore_package.class(el.firstChild);
 
-			var _this=this;
-			this.explorePackageView.setLocalLabel("tpsvr","open in tpsvr ui",
-				function(evt){
+			var _this = this;
+			this.explorePackageView.setLocalLabel("tpsvr", "open in tpsvr ui",
+				function (evt) {
 					if (!evt.target.classList.contains("local-label")) return;
-					
+
 					var url = evt.target.previousSibling.href;
 					if (!url) return;
 
 					if (_this.getViewType() === "browse") {
 						ht.ui.radio_group.setValue(_this.nme("top-bar.view-type"), "browse");
 					}
-	
+
 					setTimeout(function () { _this.nme(".iframe-page").src = url; }, 200);
 				}
 			);

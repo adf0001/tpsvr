@@ -304,12 +304,11 @@ module.exports = {
 
 		//update bundle count
 		if (state.version.bundle) {
-			var cnt = Object.keys(state.data.bundle).length;
+			var cnt = state.data.bundle ? Object.keys(state.data.bundle).length : 0;
 			var el = this.nme("top-bar.operate.bundle-count");
 			el.innerHTML = (cnt > 0) ? ("(" + cnt + ")") : "";
 		}
 	},
-
 
 	updateSelectedBundleState: function () {
 		if (!this.lastSelected || !this.lastState) return;

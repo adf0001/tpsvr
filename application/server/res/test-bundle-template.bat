@@ -15,6 +15,7 @@ set dest=./bundle/test-bundle.js
 	-o %dest% ^
 	-v ^
 	-g [ "%nodeModulesPath%/stringify" --extensions [.html .css .htm ] ] ^
+	-g [ "%nodeModulesPath%/browserify-falafel-tool" --falafelPlugins [ %nodeModulesPath%/export-to-module-exports %nodeModulesPath%/static-import-to-require ] --sourceComment --debugInfo ] ^
 	-r ../package.json:_package_json ^
 	-r ./test-data.js:_test_data ^
 	-r "../%moduleMainFile%:%moduleName%"

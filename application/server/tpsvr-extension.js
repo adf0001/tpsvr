@@ -148,6 +148,7 @@ var startBundle = function (req, res, config) {
 			"-v ",
 			"-o", prj.path + "/test/bundle/test-bundle.js",
 			"-g", "[ stringify --extensions [.html .css .htm ] ]",
+			"-g", "[ browserify-falafel-tool --falafelPlugins [ export-to-module-exports static-import-to-require ] --sourceComment --debugInfo ]",
 			"-r", prj.path + "/package.json:_package_json",
 			"-r", prj.path + "/test/test-data.js:_test_data",
 			"-r", prj.path + "/" + prj.config.main + ":" + name,
@@ -205,6 +206,7 @@ var tryMinimizeBundle = function (req, res, config) {
 			"-p", "bundle-collapser/plugin",
 			"-g", "[ browserify-stringify-minimize-css-content --minimizeExtensions [ .css ] ]",
 			"-g", "[ stringify --extensions [.html .css .htm ] --minify true ]",
+			"-g", "[ browserify-falafel-tool --falafelPlugins [ export-to-module-exports static-import-to-require ] ]",
 			"-r", prj.path + "/" + prj.config.main + ":" + name,
 		];
 		//console.log(bundleCmd, bundleArgs);

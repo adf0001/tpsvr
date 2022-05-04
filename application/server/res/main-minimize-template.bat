@@ -16,6 +16,7 @@ call "%browserifyPath%" ^
 	-p "%nodeModulesPath%/bundle-collapser/plugin" ^
 	-g [ "%nodeModulesPath%/browserify-stringify-minimize-css-content" --minimizeExtensions [ .css ] ] ^
 	-g [ "%nodeModulesPath%/stringify" --extensions [.html .css .htm ] --minify true ] ^
+	-g [ "%nodeModulesPath%/browserify-falafel-tool" --falafelPlugins [ %nodeModulesPath%/export-to-module-exports %nodeModulesPath%/static-import-to-require ] ] ^
 	-r "../%moduleMainFile%:%moduleName%"
 
 call "%terserPath%" %destFile% -o %destFile% -c -m

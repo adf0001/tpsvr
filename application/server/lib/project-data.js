@@ -19,7 +19,7 @@ var save = function () {
 	fs.writeFileSync(saveDir + "/project-list.json", JSON.stringify(a, null, "\t"));
 }
 
-var load = function () {
+var load = function (reload) {
 	var loadFile = path.normalize(__dirname + "/../../../output/project-list.json");
 	//console.log(__dirname, loadFile);
 
@@ -38,7 +38,7 @@ var load = function () {
 	var i, ret;
 	for (i = 0; i < projectList.length; i++) {
 		try {
-			ret = add(projectList[i], true);
+			ret = add(projectList[i], true, reload);
 			if (ret instanceof Error) {
 				console.log("load project fail", projectList[i], ret.message);
 			}
@@ -52,13 +52,20 @@ var load = function () {
 	}
 }
 
-var add = function (projectPath, isRestore) {
+var add = function (projectPath, isRestore, reload) {
 	if (!projectPath) return Error("empty project path");
 	//console.log(projectPath);
 
 	var projectPath = path.normalize(projectPath.replace(/[\\\/]+$/, ""));
 	var projectPathU = projectPath.toUpperCase();
-	if (projectPathU in dataFlag) return Error("project duplicated, " + dataFlag[projectPathU]);
+	if (projectPathU in dataFlag) {
+		if (!reload) return Error("project duplicated, " + dataFlag[projectPathU]);
+
+		//remove old for reloading
+		var nm = dataFlag[projectPathU];
+		delete data[nm];
+		delete dataFlag[projectPathU];
+	}
 
 	if (!fs.existsSync(projectPath + "/package.json")) return Error("unfound project config");
 

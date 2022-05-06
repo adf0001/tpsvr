@@ -73,7 +73,7 @@ var listProject = function (req, res, config) {
 }
 
 var reloadProject = function (req, res, config) {
-	project_data.load();
+	project_data.load(true);
 	return responseErrorOrData(res, null, project_data.data);
 }
 

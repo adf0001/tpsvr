@@ -42,6 +42,7 @@
     "open-url-by-browser": "^1.0.1",
     "package-json-data-set": "^1.0.2",
     "package-json-explore-view": "^1.0.3",
+    "package-json-treeview": "^1.0.7",
     "response-long-poll-state": "^1.0.4",
     "response-tool": "^1.0.4",
     "static-import-to-require": "^0.1.6",

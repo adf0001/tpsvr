@@ -36,7 +36,7 @@
     "delay-set-timeout": "^1.0.2",
     "easy-http-server": "^1.0.1",
     "export-to-module-exports": "^0.1.4",
-    "htm-tool": "^1.0.23",
+    "htm-tool": "^1.0.24",
     "http-request-text": "^1.0.5",
     "multiple-spawn": "^1.0.14",
     "open-url-by-browser": "^1.0.1",

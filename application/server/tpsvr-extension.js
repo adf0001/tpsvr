@@ -17,6 +17,8 @@ var project_data = require("./lib/project-data.js");
 var state_tool = require("./lib/state-tool.js");
 var child_process = require("child_process");
 
+var tmkt = require("tmkt");
+
 var shExt = process.platform.match(/^win/i) ? "bat" : "sh";
 
 var responseErrorOrData = function (res, error, data) {
@@ -173,7 +175,8 @@ function responseResultFile(res, resultFilePath) {
 		(err, stats) => {
 			responseErrorOrData(res, err,
 				err ? ""
-					: ("result file, " + stats.size + " bytes,\n" + path.normalize(resultFilePath))
+					: ("Result file, " + stats.size + " bytes, " + tmkt.toString19(stats.mtime) +
+						",\n" + path.normalize(resultFilePath))
 			);
 		}
 	);
@@ -259,6 +262,53 @@ var tryMinimizeBundle = function (req, res, config) {
 	);
 
 	if (ret instanceof Error) return responseErrorOrData(res, ret || "start minimize bundle fail, browserify");
+
+	return true;
+}
+
+var tryCompatibleBundle = function (req, res, config) {
+	var name = decodeURIComponent(req.reqUrl.query.project);
+	var prj = project_data.data[name];
+	if (!prj) { return responseErrorOrData(res, "project unfound, " + name); }
+
+	//user build cmd, or default build cmd
+	var buildCmd = prj.path + "/test/build/build-test-compatible.js";	//user cmd
+	if (!fs.existsSync(buildCmd)) {
+		buildCmd = path.normalize(__dirname + "/res/build-test-compatible.js");	//default cmd
+	}
+
+	//create ./test/bundle directory
+	if (!fs.existsSync(prj.path + "/test/bundle")) {
+		fs.mkdirSync(prj.path + "/test/bundle", { recursive: true });
+	}
+
+	//node args
+	var args = [
+		buildCmd,
+		"--nodeModulesDir", path.normalize(__dirname + "/../../node_modules"),
+		"--projectDir", prj.path,
+	];
+	console.log(args);
+
+	var nameList = ["compatible", name];
+	var ret = multiple_spawn.start(nameList, "node", args, { shell: true, keepHistoryConsole: true },
+		function (state) {
+			if (state == "exit") {
+				//copy history to "bundle"
+				var historyCompatible = multiple_spawn.historyConsole(nameList);
+				if (historyCompatible) {
+					multiple_spawn.historyConsole(["bundle", name], historyCompatible);
+				}
+
+				multiple_spawn.remove(nameList);
+
+				responseResultFile(res, prj.path + "/test/bundle/test-bundle-compatible.js");
+				return;
+			}
+		}
+	);
+
+	if (ret instanceof Error) return responseErrorOrData(res, ret || "start compatible bundle fail");
 
 	return true;
 }
@@ -451,6 +501,28 @@ var createMiniBundleTool = function (req, res, config) {
 	return responseResultFile(res, destFile);
 }
 
+var createCompatibleTool = function (req, res, config) {
+	var name = decodeURIComponent(req.reqUrl.query.project);
+	var prj = project_data.data[name];
+	if (!prj) { return responseErrorOrData(res, "project unfound, " + name); }
+
+	var destFile = prj.path + "/test/build/build-test-compatible.js";
+
+	if (fs.existsSync(destFile)) {
+		return responseErrorOrData(res, "file already exists, test/build/build-test-compatible.js, " + name);
+	}
+
+	var sFile = fs.readFileSync(__dirname + "/res/build-test-compatible.js", 'utf-8');
+	sFile = sFile.replace('var nodeModulesDir = "node_modules"', 'var nodeModulesDir = "' + path.normalize(__dirname + "/../../node_modules").replace(/\\/g,"\\\\") + '"');
+
+	//create ./test/build directory
+	if (!fs.existsSync(prj.path + "/test/build")) fs.mkdirSync(prj.path + "/test/build", { recursive: true });
+
+	fs.writeFileSync(destFile, sFile, 'utf8');
+
+	return responseResultFile(res, destFile);
+}
+
 var getLongPollState = function (req, res, config) {
 	if (req.reqUrl.query.current == "1") {
 		response_long_poll_state.getCurrent(res, state_tool.versionState.getDiff());
@@ -508,6 +580,8 @@ var cmdMap = {
 	"createMiniBundleTool": createMiniBundleTool,
 	//"getClientBundle": getClientBundle,
 	"loadPackage": loadPackage,
+	"tryCompatibleBundle": tryCompatibleBundle,
+	"createCompatibleTool": createCompatibleTool,
 };
 
 var projectDataLoaded = false;

@@ -376,8 +376,13 @@ module.exports = {
 				["createTestData", "<div style='text-align:left;' title='create test code, required.'>Create file 'test-data.js'</div>"],
 				["createBundleTool", "<div style='text-align:left;' title='create test module bundle tool, optional.'>Create file 'test-bundle." + shExt + "' (optional)</div>"],
 				["createTestHtm", "<div style='text-align:left;' title='create test page, optional.'>Create file 'test.htm' (optional)</div>"],
+				"-",
+				["tryCompatibleBundle", "<div style='text-align:left;' title='try bundling compatible module.'>Try compatible bundle</div>"],
+				["createCompatibleTool", "<div style='text-align:left;' title='create test compatible bundle tool, optional.'>Create file 'build-test-compatible.js' (optional)</div>"],
+				"-",
 				["tryMinimizeBundle", "<div style='text-align:left;' title='try bundling only main module, and minimize it.'>Try minimize bundle</div>"],
 				["createMiniBundleTool", "<div style='text-align:left;' title='create main module minimize bundle tool, optional.'>Create file 'main-minimize." + shExt + "' (optional)</div>"],
+				
 			],
 			{ maxHeight: "15em", },
 			function (err, data) {
@@ -415,6 +420,9 @@ module.exports = {
 	createBundleTool: function () { this.sendProjectCmd("createBundleTool"); },
 	tryMinimizeBundle: function () { this.sendProjectCmd("tryMinimizeBundle"); },
 	createMiniBundleTool: function () { this.sendProjectCmd("createMiniBundleTool"); },
+
+	tryCompatibleBundle: function () { this.sendProjectCmd("tryCompatibleBundle"); },
+	createCompatibleTool: function () { this.sendProjectCmd("createCompatibleTool"); },
 
 	onClickProjectTool: function () {
 		var name = (this.lastSelected && this.lastSelected.getAttribute("name")) || "";

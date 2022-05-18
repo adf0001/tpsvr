@@ -20,24 +20,23 @@ var files = [
 	[projectDir + "/" + _package_json.main, _package_json.name],
 ];
 
-var outputFile = projectDir + "/test/bundle/test-bundle-compatible.js";
+var outputFile = projectDir + "/test/bundle/test-bundle.js";
 
 //------------------------------
 // process
 
 //browserify
-var b = require(nodeModulesDir + "/browserify")();
+var b = require(nodeModulesDir + "/browserify")({ cache: {}, packageCache: {} });	//cache for watchify
 
 files.forEach((v) => { (typeof v === "string") ? b.add(v) : b.require(v[0], { expose: v[1] }); });
 
 b.transform(nodeModulesDir + "/stringify", { global: true, extensions: [".html", ".css", ".htm"], });
 b.transform(nodeModulesDir + "/browserify-falafel-tool", { global: true, falafelPlugins: [nodeModulesDir + "/export-to-module-exports", nodeModulesDir + "/static-import-to-require"], sourceComment: true, debugInfo: true });
-b.transform(nodeModulesDir + "/babelify", { global: true, presets: [[nodeModulesDir + "/@babel/preset-env", { targets: { browsers: ["ie >= 11", "safari >= 5.1.7"] } }]], retainLines: true, compact: false });
 
 var onBundle = function (err, buf) {
 	if (err) {
 		console.error(err);
-		process.exit(1);
+		//process.exit(1);	//don't exit for watchify
 		return;
 	}
 
@@ -45,4 +44,18 @@ var onBundle = function (err, buf) {
 	else require("fs").writeFileSync(outputFile, buf);
 }
 
+//watchify
+var watchify = require(nodeModulesDir + '/watchify');
+b.plugin(watchify, { ignoreWatch: true });	// ignore '**/node_modules/**'
+
+b.on('update', function (ids) {
+	console.log("files udpated, " + ids);
+	b.bundle(onBundle);
+});
+
+b.on('log', function (msg) {
+	console.log(msg + ", at " + (new Date()).toLocaleString());
+});
+
+//bundle
 b.bundle(onBundle);

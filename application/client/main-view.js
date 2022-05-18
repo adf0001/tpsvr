@@ -374,7 +374,7 @@ module.exports = {
 		var el = ht.ui.selectButtonList("Project operations",
 			[
 				["createTestData", "<div style='text-align:left;' title='create test code, required.'>Create file 'test-data.js'</div>"],
-				["createBundleTool", "<div style='text-align:left;' title='create test module bundle tool, optional.'>Create file 'test-bundle." + shExt + "' (optional)</div>"],
+				["createBundleTool", "<div style='text-align:left;' title='create test module bundle tool, optional.'>Create file 'watch-test-bundle.js' (optional)</div>"],
 				["createTestHtm", "<div style='text-align:left;' title='create test page, optional.'>Create file 'test.htm' (optional)</div>"],
 				"-",
 				["tryCompatibleBundle", "<div style='text-align:left;' title='try bundling compatible module.'>Try compatible bundle</div>"],

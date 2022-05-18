@@ -130,37 +130,24 @@ var startBundle = function (req, res, config) {
 	var prj = project_data.data[name];
 	if (!prj) { return responseErrorOrData(res, "project unfound, " + name); }
 
-	var bundleCmd = prj.path + "/test/test-bundle." + shExt;
-	var bundleArgs = null;
-	var byShell = false;
+	//node args
+	var args = [
+		prj.path + "/test/build/watch-test-bundle.js",	//user cmd
+		"--nodeModulesDir", path.normalize(__dirname + "/../../node_modules"),
+	];
 
-	if (!fs.existsSync(bundleCmd)) {
-		if (!fs.existsSync(prj.path + "/test/test-data.js")) {
-			return responseErrorOrData(res, "files unfound, test-bundle." + shExt + ", test-data.js, " + name);
-		}
+	if (!fs.existsSync(args[0])) {
+		args[0] = path.normalize(__dirname + "/res/watch-test-bundle.js");	//default cmd
+		args.push("--projectDir", prj.path);	//append project path
+	}
+	console.log(args);
 
-		byShell = true;
-
-		//create ./test/bundle directory
-		if (!fs.existsSync(prj.path + "/test")) fs.mkdirSync(prj.path + "/test");
-		if (!fs.existsSync(prj.path + "/test/bundle")) fs.mkdirSync(prj.path + "/test/bundle");
-
-		bundleCmd = path.normalize(__dirname + "/../../node_modules/.bin/watchify");
-		bundleArgs = [
-			"-v ",
-			"-o", prj.path + "/test/bundle/test-bundle.js",
-			"-g", "[ stringify --extensions [.html .css .htm ] ]",
-			"-g", "[ browserify-falafel-tool --falafelPlugins [ export-to-module-exports static-import-to-require ] --sourceComment --debugInfo ]",
-			"-r", prj.path + "/package.json:_package_json",
-			"-r", prj.path + "/test/test-data.js:_test_data",
-			"-r", prj.path + "/" + prj.config.main + ":" + name,
-		];
-		//console.log(bundleCmd, bundleArgs);
-
-		//return responseErrorOrData(res, "user bundle tool unfound, " + bundleCmd);
+	//create ./test/bundle directory
+	if (!fs.existsSync(prj.path + "/test/bundle")) {
+		fs.mkdirSync(prj.path + "/test/bundle", { recursive: true });
 	}
 
-	var ret = multiple_spawn.start(["bundle", name], bundleCmd, bundleArgs, { shell: byShell, keepHistoryConsole: true },
+	var ret = multiple_spawn.start(["bundle", name], "node", args, { shell: true, keepHistoryConsole: true },
 		function (state) {
 			state_tool.updateBundle();
 		}
@@ -271,24 +258,22 @@ var tryCompatibleBundle = function (req, res, config) {
 	var prj = project_data.data[name];
 	if (!prj) { return responseErrorOrData(res, "project unfound, " + name); }
 
-	//user build cmd, or default build cmd
-	var buildCmd = prj.path + "/test/build/build-test-compatible.js";	//user cmd
-	if (!fs.existsSync(buildCmd)) {
-		buildCmd = path.normalize(__dirname + "/res/build-test-compatible.js");	//default cmd
+	//node args
+	var args = [
+		prj.path + "/test/build/build-test-compatible.js",	//user cmd
+		"--nodeModulesDir", path.normalize(__dirname + "/../../node_modules"),
+	];
+
+	if (!fs.existsSync(args[0])) {
+		args[0] = path.normalize(__dirname + "/res/build-test-compatible.js");	//default cmd
+		args.push("--projectDir", prj.path);	//append project path
 	}
+	console.log(args);
 
 	//create ./test/bundle directory
 	if (!fs.existsSync(prj.path + "/test/bundle")) {
 		fs.mkdirSync(prj.path + "/test/bundle", { recursive: true });
 	}
-
-	//node args
-	var args = [
-		buildCmd,
-		"--nodeModulesDir", path.normalize(__dirname + "/../../node_modules"),
-		"--projectDir", prj.path,
-	];
-	console.log(args);
 
 	var nameList = ["compatible", name];
 	var ret = multiple_spawn.start(nameList, "node", args, { shell: true, keepHistoryConsole: true },
@@ -402,40 +387,30 @@ var createTestHtm = function (req, res, config) {
 	return responseResultFile(res, prj.path + "/test/test.htm");
 }
 
-var createBundleTool = function (req, res, config) {
+function copyBuildScript(req, res, fileName) {
 	var name = decodeURIComponent(req.reqUrl.query.project);
 	var prj = project_data.data[name];
 	if (!prj) { return responseErrorOrData(res, "project unfound, " + name); }
 
-	var destFile = prj.path + "/test/test-bundle." + shExt;
+	var destFile = prj.path + "/test/build/" + fileName;
 
 	if (fs.existsSync(destFile)) {
-		return responseErrorOrData(res, "file already exists, test/test-bundle." + shExt + ", " + name);
+		return responseErrorOrData(res, "file already exists, test/build/" + fileName + ", " + name);
 	}
 
-	var sFile = fs.readFileSync(__dirname + "/res/test-bundle-template." + shExt, 'utf-8');
-	sFile = sFile.replace(/\%tpsvrPath\%/g, path.normalize(__dirname + "/../.."))
-		.replace(/\%moduleName\%/g, prj.config.name)
-		.replace(/\%moduleMainFile\%/g, prj.config.main)
-		;
+	var sFile = fs.readFileSync(__dirname + "/res/" + fileName, 'utf-8');
+	sFile = sFile.replace('var nodeModulesDir = "node_modules"', 'var nodeModulesDir = "' + path.normalize(__dirname + "/../../node_modules").replace(/\\/g, "\\\\") + '"');
 
-	if (shExt === "bat") {
-		sFile = sFile.replace(/(\r\n|\n\r|\n|\r)/g, "\r\n");	//win7 bug: (bat utf8)+( not-ascii string )+(\r as line break )+(chcp 65001) => bat exec fail
-	}
-
-	//create ./test directory
-	if (!fs.existsSync(prj.path + "/test")) fs.mkdirSync(prj.path + "/test");
+	//create ./test/build directory
+	if (!fs.existsSync(prj.path + "/test/build")) fs.mkdirSync(prj.path + "/test/build", { recursive: true });
 
 	fs.writeFileSync(destFile, sFile, 'utf8');
 
-	//chmod +x for *.sh
-	if (shExt === "sh") {
-		child_process.exec("chmod +x " + destFile, (err, data) => {
-			if (err) console.log(err);
-		});
-	}
-
 	return responseResultFile(res, destFile);
+}
+
+var createBundleTool = function (req, res, config) {
+	return copyBuildScript(req, res, "watch-test-bundle.js");
 }
 
 var loadPackage = function (req, res, config) {
@@ -502,25 +477,7 @@ var createMiniBundleTool = function (req, res, config) {
 }
 
 var createCompatibleTool = function (req, res, config) {
-	var name = decodeURIComponent(req.reqUrl.query.project);
-	var prj = project_data.data[name];
-	if (!prj) { return responseErrorOrData(res, "project unfound, " + name); }
-
-	var destFile = prj.path + "/test/build/build-test-compatible.js";
-
-	if (fs.existsSync(destFile)) {
-		return responseErrorOrData(res, "file already exists, test/build/build-test-compatible.js, " + name);
-	}
-
-	var sFile = fs.readFileSync(__dirname + "/res/build-test-compatible.js", 'utf-8');
-	sFile = sFile.replace('var nodeModulesDir = "node_modules"', 'var nodeModulesDir = "' + path.normalize(__dirname + "/../../node_modules").replace(/\\/g,"\\\\") + '"');
-
-	//create ./test/build directory
-	if (!fs.existsSync(prj.path + "/test/build")) fs.mkdirSync(prj.path + "/test/build", { recursive: true });
-
-	fs.writeFileSync(destFile, sFile, 'utf8');
-
-	return responseResultFile(res, destFile);
+	return copyBuildScript(req, res, "build-test-compatible.js");
 }
 
 var getLongPollState = function (req, res, config) {

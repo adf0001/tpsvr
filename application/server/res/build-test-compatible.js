@@ -43,6 +43,8 @@ var onBundle = function (err, buf) {
 
 	if (outputFile === "stdout") console.log(buf.toString());
 	else require("fs").writeFileSync(outputFile, buf);
+
+	console.log("output file " + outputFile);
 }
 
 b.bundle(onBundle);

@@ -54,7 +54,7 @@ b.on('update', function (ids) {
 });
 
 b.on('log', function (msg) {
-	console.log(msg + ", at " + (new Date()).toLocaleString());
+	console.log(msg + ", at " + (new Date()).toLocaleString() + ", " + outputFile);
 });
 
 //bundle

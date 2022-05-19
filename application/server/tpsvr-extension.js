@@ -15,11 +15,11 @@ var _package_json = require("../../package.json");
 
 var project_data = require("./lib/project-data.js");
 var state_tool = require("./lib/state-tool.js");
-var child_process = require("child_process");
+//var child_process = require("child_process");
 
 var tmkt = require("tmkt");
 
-var shExt = process.platform.match(/^win/i) ? "bat" : "sh";
+//var shExt = process.platform.match(/^win/i) ? "bat" : "sh";
 
 var responseErrorOrData = function (res, error, data) {
 	if (error) console.log(error.message || error);
@@ -175,35 +175,25 @@ var tryMinimizeBundle = function (req, res, config) {
 	var prj = project_data.data[name];
 	if (!prj) { return responseErrorOrData(res, "project unfound, " + name); }
 
-	var minimizeCmd = prj.path + "/test/main-minimize." + shExt;
-	var minimizeArgs = null;
-	var byUserBatch = true;
-	var byShell = false;
+	//node args
+	var args = [
+		prj.path + "/test/build/build-main-minimize.js",	//user cmd
+		"--nodeModulesDir", path.normalize(__dirname + "/../../node_modules"),
+	];
 
-	if (!fs.existsSync(minimizeCmd)) {
-		byUserBatch = false;
-		byShell = true;
+	if (!fs.existsSync(args[0])) {
+		args[0] = path.normalize(__dirname + "/res/build-main-minimize.js");	//default cmd
+		args.push("--projectDir", prj.path);	//append project path
+	}
+	//console.log(args);
 
-		//create ./test/bundle directory
-		if (!fs.existsSync(prj.path + "/test")) fs.mkdirSync(prj.path + "/test");
-		if (!fs.existsSync(prj.path + "/test/bundle")) fs.mkdirSync(prj.path + "/test/bundle");
-
-		//step 1: browserify
-		minimizeCmd = path.normalize(__dirname + "/../../node_modules/.bin/browserify");
-		minimizeArgs = [
-			"-v ",
-			"-o", prj.path + "/test/bundle/main-bundle-minimized.js",
-			"-p", "bundle-collapser/plugin",
-			"-g", "[ browserify-stringify-minimize-css-content --minimizeExtensions [ .css ] ]",
-			"-g", "[ stringify --extensions [.html .css .htm ] --minify true ]",
-			"-g", "[ browserify-falafel-tool --falafelPlugins [ export-to-module-exports static-import-to-require ] ]",
-			"-r", prj.path + "/" + prj.config.main + ":" + name,
-		];
-		//console.log(bundleCmd, bundleArgs);
+	//create ./test/bundle directory
+	if (!fs.existsSync(prj.path + "/test/bundle")) {
+		fs.mkdirSync(prj.path + "/test/bundle", { recursive: true });
 	}
 
 	var nameList = ["minimize", name];
-	var ret = multiple_spawn.start(nameList, minimizeCmd, minimizeArgs, { shell: byShell, keepHistoryConsole: true },
+	var ret = multiple_spawn.start(nameList, "node", args, { shell: true, keepHistoryConsole: true },
 		function (state) {
 			if (state == "exit") {
 				//copy history to "bundle"
@@ -214,41 +204,13 @@ var tryMinimizeBundle = function (req, res, config) {
 
 				multiple_spawn.remove(nameList);
 
-				//user batch contain both step 1 & 2
-				if (byUserBatch) {
-					responseResultFile(res, prj.path + "/test/bundle/main-bundle-minimized.js");
-					return;
-				}
-
-				//step 2: terser
-				minimizeCmd = path.normalize(__dirname + "/../../node_modules/.bin/terser");
-				minimizeArgs = [
-					prj.path + "/test/bundle/main-bundle-minimized.js",
-					"-o", prj.path + "/test/bundle/main-bundle-minimized.js",
-					"-c",
-					"-m"
-				];
-				ret = multiple_spawn.start(nameList, minimizeCmd, minimizeArgs, { shell: byShell, keepHistoryConsole: true },
-					function (state) {
-						if (state == "exit") {
-							//copy history to "bundle"
-							var historyMinimize = multiple_spawn.historyConsole(nameList);
-							if (historyMinimize) {
-								multiple_spawn.historyConsole(["bundle", name], historyMinimize);
-							}
-
-							multiple_spawn.remove(nameList);	//for next time minimized history
-
-							responseResultFile(res, prj.path + "/test/bundle/main-bundle-minimized.js");
-						}
-					}
-				);
-				if (ret instanceof Error) return responseErrorOrData(res, ret || "start minimize bundle fail, terser");
+				responseResultFile(res, prj.path + "/test/bundle/main-bundle-minimized.js");
+				return;
 			}
 		}
 	);
 
-	if (ret instanceof Error) return responseErrorOrData(res, ret || "start minimize bundle fail, browserify");
+	if (ret instanceof Error) return responseErrorOrData(res, ret || "start minimize bundle fail");
 
 	return true;
 }
@@ -441,39 +403,7 @@ var loadPackage = function (req, res, config) {
 }
 
 var createMiniBundleTool = function (req, res, config) {
-	var name = decodeURIComponent(req.reqUrl.query.project);
-	var prj = project_data.data[name];
-	if (!prj) { return responseErrorOrData(res, "project unfound, " + name); }
-
-	var destFile = prj.path + "/test/main-minimize." + shExt;
-
-	if (fs.existsSync(destFile)) {
-		return responseErrorOrData(res, "file already exists, test/main-minimize." + shExt + ", " + name);
-	}
-
-	var sFile = fs.readFileSync(__dirname + "/res/main-minimize-template." + shExt, 'utf-8');
-	sFile = sFile.replace(/\%tpsvrPath\%/g, path.normalize(__dirname + "/../.."))
-		.replace(/\%moduleName\%/g, prj.config.name)
-		.replace(/\%moduleMainFile\%/g, prj.config.main)
-		;
-
-	if (shExt === "bat") {
-		sFile = sFile.replace(/(\r\n|\n\r|\n|\r)/g, "\r\n");	//win7 bug: (bat utf8)+( not-ascii string )+(\r as line break )+(chcp 65001) => bat exec fail
-	}
-
-	//create ./test directory
-	if (!fs.existsSync(prj.path + "/test")) fs.mkdirSync(prj.path + "/test");
-
-	fs.writeFileSync(destFile, sFile, 'utf8');
-
-	//chmod +x for *.sh
-	if (shExt === "sh") {
-		child_process.exec("chmod +x " + destFile, (err, data) => {
-			if (err) console.log(err);
-		});
-	}
-
-	return responseResultFile(res, destFile);
+	return copyBuildScript(req, res, "build-main-minimize.js");
 }
 
 var createCompatibleTool = function (req, res, config) {

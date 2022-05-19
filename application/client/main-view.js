@@ -381,7 +381,7 @@ module.exports = {
 				["createCompatibleTool", "<div style='text-align:left;' title='create test compatible bundle tool, optional.'>Create file 'build-test-compatible.js' (optional)</div>"],
 				"-",
 				["tryMinimizeBundle", "<div style='text-align:left;' title='try bundling only main module, and minimize it.'>Try minimize bundle</div>"],
-				["createMiniBundleTool", "<div style='text-align:left;' title='create main module minimize bundle tool, optional.'>Create file 'main-minimize." + shExt + "' (optional)</div>"],
+				["createMiniBundleTool", "<div style='text-align:left;' title='create main module minimize bundle tool, optional.'>Create file 'build-main-minimize.js' (optional)</div>"],
 				
 			],
 			{ maxHeight: "15em", },

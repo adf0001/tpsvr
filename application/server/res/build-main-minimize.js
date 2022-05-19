@@ -52,6 +52,7 @@ var onBundle = function (err, buf) {
 			var code = result.code;
 			var fs = require("fs");
 
+			/*
 			//optional prefix check-js-compatible.js; remove the file to disable;
 			var fn = projectDir + "/test/build/check-js-compatible.js";
 			if (fs.existsSync(fn)) {
@@ -60,7 +61,8 @@ var onBundle = function (err, buf) {
 					.replace(/[\r\n]+$/, "\n") +	//remove tail line break
 					"\n" + code;
 			}
-
+			*/
+			
 			if (outputFile === "stdout") console.log(code);
 			else fs.writeFileSync(outputFile, code);
 

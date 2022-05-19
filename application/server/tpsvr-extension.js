@@ -140,7 +140,7 @@ var startBundle = function (req, res, config) {
 		args[0] = path.normalize(__dirname + "/res/watch-test-bundle.js");	//default cmd
 		args.push("--projectDir", prj.path);	//append project path
 	}
-	console.log(args);
+	//console.log(args);
 
 	//create ./test/bundle directory
 	if (!fs.existsSync(prj.path + "/test/bundle")) {
@@ -230,7 +230,7 @@ var tryCompatibleBundle = function (req, res, config) {
 		args[0] = path.normalize(__dirname + "/res/build-test-compatible.js");	//default cmd
 		args.push("--projectDir", prj.path);	//append project path
 	}
-	console.log(args);
+	//console.log(args);
 
 	//create ./test/bundle directory
 	if (!fs.existsSync(prj.path + "/test/bundle")) {
@@ -349,7 +349,8 @@ var createTestHtm = function (req, res, config) {
 	return responseResultFile(res, prj.path + "/test/test.htm");
 }
 
-function copyBuildScript(req, res, fileName) {
+//options: { copyOnly, sourceDir }
+function copyBuildScript(req, res, fileName, options) {
 	var name = decodeURIComponent(req.reqUrl.query.project);
 	var prj = project_data.data[name];
 	if (!prj) { return responseErrorOrData(res, "project unfound, " + name); }
@@ -360,8 +361,12 @@ function copyBuildScript(req, res, fileName) {
 		return responseErrorOrData(res, "file already exists, test/build/" + fileName + ", " + name);
 	}
 
-	var sFile = fs.readFileSync(__dirname + "/res/" + fileName, 'utf-8');
-	sFile = sFile.replace('var nodeModulesDir = "node_modules"', 'var nodeModulesDir = "' + path.normalize(__dirname + "/../../node_modules").replace(/\\/g, "\\\\") + '"');
+	var sourceDir = options?.sourceDir || (__dirname + "/res/");
+	var sFile = fs.readFileSync(path.join(sourceDir, fileName), 'utf-8');
+
+	if (!options?.copyOnly) {
+		sFile = sFile.replace('var nodeModulesDir = "node_modules"', 'var nodeModulesDir = "' + path.normalize(__dirname + "/../../node_modules").replace(/\\/g, "\\\\") + '"');
+	}
 
 	//create ./test/build directory
 	if (!fs.existsSync(prj.path + "/test/build")) fs.mkdirSync(prj.path + "/test/build", { recursive: true });
@@ -408,6 +413,10 @@ var createMiniBundleTool = function (req, res, config) {
 
 var createCompatibleTool = function (req, res, config) {
 	return copyBuildScript(req, res, "build-test-compatible.js");
+}
+
+var createCheckJsCompatible = function (req, res, config) {
+	return copyBuildScript(req, res, "check-js-compatible.js", { copyOnly: true });
 }
 
 var getLongPollState = function (req, res, config) {
@@ -469,6 +478,7 @@ var cmdMap = {
 	"loadPackage": loadPackage,
 	"tryCompatibleBundle": tryCompatibleBundle,
 	"createCompatibleTool": createCompatibleTool,
+	"createCheckJsCompatible": createCheckJsCompatible,
 };
 
 var projectDataLoaded = false;

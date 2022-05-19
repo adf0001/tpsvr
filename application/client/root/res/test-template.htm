@@ -157,5 +157,8 @@
 </script>
 
 <script src='./bundle/test-bundle.js'></script>
+<script>
+	if(typeof require==="undefined") document.write("<"+"script src='./bundle/test-bundle-compatible.js'><"+"/script>");
+</script>
 
 </html>

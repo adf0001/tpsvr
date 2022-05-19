@@ -379,6 +379,7 @@ module.exports = {
 				"-",
 				["tryCompatibleBundle", "<div style='text-align:left;' title='try bundling compatible module.'>Try compatible bundle</div>"],
 				["createCompatibleTool", "<div style='text-align:left;' title='create test compatible bundle tool, optional.'>Create file 'build-test-compatible.js' (optional)</div>"],
+				["createCheckJsCompatible", "<div style='text-align:left;' title='create check js compatible script, optional.'>Create file 'check-js-compatible.js' (optional)</div>"],
 				"-",
 				["tryMinimizeBundle", "<div style='text-align:left;' title='try bundling only main module, and minimize it.'>Try minimize bundle</div>"],
 				["createMiniBundleTool", "<div style='text-align:left;' title='create main module minimize bundle tool, optional.'>Create file 'build-main-minimize.js' (optional)</div>"],
@@ -388,13 +389,6 @@ module.exports = {
 			function (err, data) {
 				if (!data) return;
 
-				/*
-				if (data === "createTestData") _this.createTestData();
-				else if (data === "createTestHtm") _this.createTestHtm();
-				else if (data === "createBundleTool") _this.createBundleTool();
-				else if (data === "tryMinimizeBundle") _this.tryMinimizeBundle();
-				else if (data === "createMiniBundleTool") _this.createMiniBundleTool();
-				*/
 				if (_this[data]) _this[data]();
 			}
 		)
@@ -423,6 +417,7 @@ module.exports = {
 
 	tryCompatibleBundle: function () { this.sendProjectCmd("tryCompatibleBundle"); },
 	createCompatibleTool: function () { this.sendProjectCmd("createCompatibleTool"); },
+	createCheckJsCompatible: function () { this.sendProjectCmd("createCheckJsCompatible"); },
 
 	onClickProjectTool: function () {
 		var name = (this.lastSelected && this.lastSelected.getAttribute("name")) || "";

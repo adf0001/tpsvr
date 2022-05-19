@@ -31,17 +31,32 @@ var b = require(nodeModulesDir + "/browserify")({ cache: {}, packageCache: {} })
 files.forEach((v) => { (typeof v === "string") ? b.add(v) : b.require(v[0], { expose: v[1] }); });
 
 b.transform(nodeModulesDir + "/stringify", { global: true, extensions: [".html", ".css", ".htm"], });
-b.transform(nodeModulesDir + "/browserify-falafel-tool", { global: true, falafelPlugins: [nodeModulesDir + "/export-to-module-exports", nodeModulesDir + "/static-import-to-require"], sourceComment: true, debugInfo: true });
+b.transform(nodeModulesDir + "/browserify-falafel-tool", {
+	global: true, sourceComment: true, debugInfo: true,
+	falafelPlugins: [nodeModulesDir + "/export-to-module-exports", nodeModulesDir + "/static-import-to-require"],
+});
 
 var onBundle = function (err, buf) {
 	if (err) {
 		console.error(err);
-		//process.exit(1);	//don't exit for watchify
+		//process.exit(1);	//don't exit, for watchify
 		return;
 	}
 
-	if (outputFile === "stdout") console.log(buf.toString());
-	else require("fs").writeFileSync(outputFile, buf);
+	var code = buf.toString();
+	var fs = require("fs");
+
+	//optional prefix check-js-compatible.js; remove the file to disable;
+	var fn = projectDir + "/test/build/check-js-compatible.js";
+	if (fs.existsSync(fn)) {
+		code = fs.readFileSync(fn).toString()
+			.replace(/[\r\n]+\s*\/\/.*[\r\n]+/g, "\n")	//remove single line comment
+			.replace(/[\r\n]+$/, "\n") +	//remove tail line break
+			"\n" + code;
+	}
+
+	if (outputFile === "stdout") console.log(code);
+	else fs.writeFileSync(outputFile, code);
 }
 
 //watchify

@@ -31,8 +31,14 @@ var b = require(nodeModulesDir + "/browserify")();
 files.forEach((v) => { (typeof v === "string") ? b.add(v) : b.require(v[0], { expose: v[1] }); });
 
 b.transform(nodeModulesDir + "/stringify", { global: true, extensions: [".html", ".css", ".htm"], });
-b.transform(nodeModulesDir + "/browserify-falafel-tool", { global: true, falafelPlugins: [nodeModulesDir + "/export-to-module-exports", nodeModulesDir + "/static-import-to-require"], sourceComment: true, debugInfo: true });
-b.transform(nodeModulesDir + "/babelify", { global: true, presets: [[nodeModulesDir + "/@babel/preset-env", { targets: { browsers: ["ie >= 11", "safari >= 5.1.7"] } }]], retainLines: true, compact: false });
+b.transform(nodeModulesDir + "/browserify-falafel-tool", {
+	global: true, sourceComment: true, debugInfo: true,
+	falafelPlugins: [nodeModulesDir + "/export-to-module-exports", nodeModulesDir + "/static-import-to-require"],
+});
+b.transform(nodeModulesDir + "/babelify", {
+	global: true, retainLines: true, compact: false, sourceType: 'script',
+	presets: [[nodeModulesDir + "/@babel/preset-env", { targets: { browsers: ["ie >= 11", "safari >= 5.1.7"] } }]],
+});
 
 var onBundle = function (err, buf) {
 	if (err) {

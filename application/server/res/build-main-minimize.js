@@ -31,8 +31,11 @@ files.forEach((v) => { (typeof v === "string") ? b.add(v) : b.require(v[0], { ex
 b.plugin(nodeModulesDir + "/bundle-collapser/plugin");
 
 b.transform(nodeModulesDir + "/browserify-stringify-minimize-css-content", { global: true, });
-b.transform(nodeModulesDir + "/stringify", { global: true, extensions: [".html", ".css", ".htm"], minify: true });
-b.transform(nodeModulesDir + "/browserify-falafel-tool", { global: true, falafelPlugins: [nodeModulesDir + "/export-to-module-exports", nodeModulesDir + "/static-import-to-require"] });
+b.transform(nodeModulesDir + "/stringify", { global: true, minify: true, extensions: [".html", ".css", ".htm"] });
+b.transform(nodeModulesDir + "/browserify-falafel-tool", {
+	global: true,
+	falafelPlugins: [nodeModulesDir + "/export-to-module-exports", nodeModulesDir + "/static-import-to-require"]
+});
 
 var onBundle = function (err, buf) {
 	if (err) {

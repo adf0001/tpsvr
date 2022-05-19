@@ -49,8 +49,20 @@ var onBundle = function (err, buf) {
 	var terser = require(nodeModulesDir + "/terser");
 	terser.minify(buf.toString()).then(
 		result => {
-			if (outputFile === "stdout") console.log(result.code);
-			else require("fs").writeFileSync(outputFile, result.code);
+			var code = result.code;
+			var fs = require("fs");
+
+			//optional prefix check-js-compatible.js; remove the file to disable;
+			var fn = projectDir + "/test/build/check-js-compatible.js";
+			if (fs.existsSync(fn)) {
+				code = fs.readFileSync(fn).toString()
+					.replace(/[\r\n]+\s*\/\/.*[\r\n]+/g, "\n")	//remove single line comment
+					.replace(/[\r\n]+$/, "\n") +	//remove tail line break
+					"\n" + code;
+			}
+
+			if (outputFile === "stdout") console.log(code);
+			else fs.writeFileSync(outputFile, code);
 
 			console.log("output file " + outputFile);
 		},

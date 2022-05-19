@@ -49,10 +49,7 @@ var onBundle = function (err, buf) {
 	//optional prefix check-js-compatible.js; remove the file to disable;
 	var fn = projectDir + "/test/build/check-js-compatible.js";
 	if (fs.existsSync(fn)) {
-		code = fs.readFileSync(fn).toString()
-			.replace(/[\r\n]+\s*\/\/.*[\r\n]+/g, "\n")	//remove single line comment
-			.replace(/[\r\n]+$/, "\n") +	//remove tail line break
-			"\n" + code;
+		code = fs.readFileSync(fn) + "\n" + code;
 	}
 
 	if (outputFile === "stdout") console.log(code);

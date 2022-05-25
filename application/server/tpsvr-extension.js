@@ -115,7 +115,7 @@ function getClientBundle(req, res, config) {
 	cfg.filePath = __dirname + "/../client/root/bundle-client.debug" + (mr[1] || "") + ".js";
 	//console.log("getClientBundle")
 
-	if (!fs.existsSync(cfg.filePath)) {
+	if (!fs.existsSync(cfg.filePath)) {		//load the minimized version if the debug verson is unfound
 		cfg.filePath = __dirname + "/../client/root/bundle-client.minimized" + (mr[1] || "") + ".js";
 	}
 	cfg.isRoot = false;

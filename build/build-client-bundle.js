@@ -41,7 +41,10 @@ outputFile = path.normalize(outputFile);
 //browserify
 var b = require(nodeModulesDir + "/browserify")({ cache: {}, packageCache: {} });	//cache for watchify
 
-files.forEach((v) => { (typeof v === "string") ? b.add(v) : b.require(v[0], { expose: v[1] }); });
+files.forEach((v) => {
+	if (typeof v === "string") b.add(path.normalize(v));
+	else b.require(path.normalize(v[0]), { expose: v[1] });
+});
 
 if (minimizeMode) {
 	b.plugin(nodeModulesDir + "/bundle-collapser/plugin");
@@ -49,7 +52,10 @@ if (minimizeMode) {
 	b.transform(nodeModulesDir + "/browserify-stringify-minimize-css-content", { global: true, });
 }
 
-b.transform(nodeModulesDir + "/stringify", { global: true, minify: minimizeMode, extensions: [".html", ".css", ".htm"], });
+b.transform(nodeModulesDir + "/stringify", {
+	global: true, minify: minimizeMode,
+	extensions: [".html", ".css", ".htm"],
+});
 b.transform(nodeModulesDir + "/browserify-falafel-tool", {
 	global: true, sourceComment: !minimizeMode, debugInfo: !minimizeMode,
 	falafelPlugins: [nodeModulesDir + "/export-to-module-exports", nodeModulesDir + "/static-import-to-require"],

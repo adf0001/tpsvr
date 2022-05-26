@@ -1,5 +1,5 @@
 /*
-	Update /node_modules/ by user-definition replacement list.
+	Update /node_modules/ by user-defined replacement list.
 */
 
 //------------------------------

@@ -374,16 +374,17 @@ module.exports = {
 		var el = ht.ui.selectButtonList("Project operations",
 			[
 				["createTestData", "<div style='text-align:left;' title='create test code, required.'>Create file 'test-data.js'</div>"],
-				["createBundleTool", "<div style='text-align:left;' title='create test module bundle tool, optional.'>Create file 'watch-test-bundle.js' (optional)</div>"],
+				["createBundleTool", "<div style='text-align:left;' title='create test module bundle tool, optional.'>Create file 'build-test-bundle.js' (optional)</div>"],
 				["createTestHtm", "<div style='text-align:left;' title='create test page, optional.'>Create file 'test.htm' (optional)</div>"],
-				"-",
-				["tryCompatibleBundle", "<div style='text-align:left;' title='try bundling compatible module.'>Try compatible bundle</div>"],
-				["createCompatibleTool", "<div style='text-align:left;' title='create test compatible bundle tool, optional.'>Create file 'build-test-compatible.js' (optional)</div>"],
 				["createCheckJsCompatible", "<div style='text-align:left;' title='create check js compatible script, optional.'>Create file 'check-js-compatible.js' (optional)</div>"],
 				"-",
-				["tryMinimizeBundle", "<div style='text-align:left;' title='try bundling only main module, and minimize it.'>Try minimize bundle</div>"],
-				["createMiniBundleTool", "<div style='text-align:left;' title='create main module minimize bundle tool, optional.'>Create file 'build-main-minimize.js' (optional)</div>"],
-				
+				["tryCompatibleBundle", "<div style='text-align:left;' title='try bundling compatible module.'>Try compatible bundle</div>"],
+				//["createCompatibleTool", "<div style='text-align:left;' title='create test compatible bundle tool, optional.'>Create file 'build-test-compatible.js' (optional)</div>"],
+				//"-",
+				["tryMinimizeBundle", "<div style='text-align:left;' title='try bundling only main module, and minimize it.'>Try main minimize bundle</div>"],
+				["tryMiniCompatibleBundle", "<div style='text-align:left;' title='try bundling only main compatible module, and minimize it.'>Try main mini+compatible bundle</div>"],
+				//["createMiniBundleTool", "<div style='text-align:left;' title='create main module minimize bundle tool, optional.'>Create file 'build-main-minimize.js' (optional)</div>"],
+
 			],
 			{ maxHeight: "15em", },
 			function (err, data) {
@@ -413,10 +414,11 @@ module.exports = {
 	createTestHtm: function () { this.sendProjectCmd("createTestHtm"); },
 	createBundleTool: function () { this.sendProjectCmd("createBundleTool"); },
 	tryMinimizeBundle: function () { this.sendProjectCmd("tryMinimizeBundle"); },
-	createMiniBundleTool: function () { this.sendProjectCmd("createMiniBundleTool"); },
+	tryMiniCompatibleBundle: function () { this.sendProjectCmd("tryMiniCompatibleBundle"); },
+	//createMiniBundleTool: function () { this.sendProjectCmd("createMiniBundleTool"); },
 
 	tryCompatibleBundle: function () { this.sendProjectCmd("tryCompatibleBundle"); },
-	createCompatibleTool: function () { this.sendProjectCmd("createCompatibleTool"); },
+	//createCompatibleTool: function () { this.sendProjectCmd("createCompatibleTool"); },
 	createCheckJsCompatible: function () { this.sendProjectCmd("createCheckJsCompatible"); },
 
 	onClickProjectTool: function () {

@@ -125,21 +125,29 @@ function getClientBundle(req, res, config) {
 	return true;
 }
 
-var startBundle = function (req, res, config) {
+//options: { watchMode, spawnName, outputFileName, minimizeMode, onlyMain, compatibleMode }
+function runTestBundle(req, res, config, options) {
 	var name = decodeURIComponent(req.reqUrl.query.project);
 	var prj = project_data.data[name];
 	if (!prj) { return responseErrorOrData(res, "project unfound, " + name); }
 
 	//node args
 	var args = [
-		prj.path + "/test/build/watch-test-bundle.js",	//user cmd
+		prj.path + "/test/build/build-test-bundle.js",	//user cmd
 		"--nodeModulesDir", path.normalize(__dirname + "/../../node_modules"),
+		"--outputFileName", options.outputFileName,
 	];
 
 	if (!fs.existsSync(args[0])) {
-		args[0] = path.normalize(__dirname + "/res/watch-test-bundle.js");	//default cmd
+		args[0] = path.normalize(__dirname + "/res/build-test-bundle.js");	//default cmd
 		args.push("--projectDir", prj.path);	//append project path
 	}
+
+	if (options.watchMode) args.push("--watchMode");
+	if (options.minimizeMode) args.push("--minimizeMode");
+	if (options.onlyMain) args.push("--onlyMain");
+	if (options.compatibleMode) args.push("--compatibleMode");
+
 	//console.log(args);
 
 	//create ./test/bundle directory
@@ -147,13 +155,41 @@ var startBundle = function (req, res, config) {
 		fs.mkdirSync(prj.path + "/test/bundle", { recursive: true });
 	}
 
-	var ret = multiple_spawn.start(["bundle", name], "node", args, { shell: true, keepHistoryConsole: true },
-		function (state) {
-			state_tool.updateBundle();
-		}
-	);
+	if (options.watchMode) {
+		var ret = multiple_spawn.start(["bundle", name], "node", args, { shell: true, keepHistoryConsole: true },
+			function (state) {
+				state_tool.updateBundle();
+			}
+		);
 
-	return responseErrorOrData(res, (!ret || (ret instanceof Error)) ? (ret || "start bundle fail") : null, !!ret);
+		return responseErrorOrData(res, (!ret || (ret instanceof Error)) ? (ret || "start bundle fail") : null, !!ret);
+	}
+	else {
+		var nameList = [options.spawnName, name];
+		var ret = multiple_spawn.start(nameList, "node", args, { shell: true, keepHistoryConsole: true },
+			function (state) {
+				if (state == "exit") {
+					//copy history to "bundle"
+					var historyData = multiple_spawn.historyConsole(nameList);
+					if (historyData) {
+						multiple_spawn.historyConsole(["bundle", name], historyData);
+					}
+					multiple_spawn.remove(nameList);
+
+					responseResultFile(res, prj.path + "/test/bundle/" + options.outputFileName);
+					return;
+				}
+			}
+		);
+
+		if (ret instanceof Error) return responseErrorOrData(res, ret || ("start " + options.spawnName + " bundle fail"));
+
+		return true;
+	}
+}
+
+var startBundle = function (req, res, config) {
+	return runTestBundle(req, res, config, { watchMode: true, outputFileName: "test-bundle.js", });
 }
 
 function responseResultFile(res, resultFilePath) {
@@ -170,94 +206,25 @@ function responseResultFile(res, resultFilePath) {
 	return true;
 }
 
+var tryMiniCompatibleBundle = function (req, res, config) {
+	return runTestBundle(req, res, config, {
+		spawnName: "minimize+compatible", outputFileName: "main-bundle-compatible-minimized.js",
+		minimizeMode: true, onlyMain: true, compatibleMode: true,
+	});
+}
+
 var tryMinimizeBundle = function (req, res, config) {
-	var name = decodeURIComponent(req.reqUrl.query.project);
-	var prj = project_data.data[name];
-	if (!prj) { return responseErrorOrData(res, "project unfound, " + name); }
-
-	//node args
-	var args = [
-		prj.path + "/test/build/build-main-minimize.js",	//user cmd
-		"--nodeModulesDir", path.normalize(__dirname + "/../../node_modules"),
-	];
-
-	if (!fs.existsSync(args[0])) {
-		args[0] = path.normalize(__dirname + "/res/build-main-minimize.js");	//default cmd
-		args.push("--projectDir", prj.path);	//append project path
-	}
-	//console.log(args);
-
-	//create ./test/bundle directory
-	if (!fs.existsSync(prj.path + "/test/bundle")) {
-		fs.mkdirSync(prj.path + "/test/bundle", { recursive: true });
-	}
-
-	var nameList = ["minimize", name];
-	var ret = multiple_spawn.start(nameList, "node", args, { shell: true, keepHistoryConsole: true },
-		function (state) {
-			if (state == "exit") {
-				//copy history to "bundle"
-				var historyMinimize = multiple_spawn.historyConsole(nameList);
-				if (historyMinimize) {
-					multiple_spawn.historyConsole(["bundle", name], historyMinimize);
-				}
-
-				multiple_spawn.remove(nameList);
-
-				responseResultFile(res, prj.path + "/test/bundle/main-bundle-minimized.js");
-				return;
-			}
-		}
-	);
-
-	if (ret instanceof Error) return responseErrorOrData(res, ret || "start minimize bundle fail");
-
-	return true;
+	return runTestBundle(req, res, config, {
+		spawnName: "minimize", outputFileName: "main-bundle-minimized.js",
+		minimizeMode: true, onlyMain: true,
+	});
 }
 
 var tryCompatibleBundle = function (req, res, config) {
-	var name = decodeURIComponent(req.reqUrl.query.project);
-	var prj = project_data.data[name];
-	if (!prj) { return responseErrorOrData(res, "project unfound, " + name); }
-
-	//node args
-	var args = [
-		prj.path + "/test/build/build-test-compatible.js",	//user cmd
-		"--nodeModulesDir", path.normalize(__dirname + "/../../node_modules"),
-	];
-
-	if (!fs.existsSync(args[0])) {
-		args[0] = path.normalize(__dirname + "/res/build-test-compatible.js");	//default cmd
-		args.push("--projectDir", prj.path);	//append project path
-	}
-	//console.log(args);
-
-	//create ./test/bundle directory
-	if (!fs.existsSync(prj.path + "/test/bundle")) {
-		fs.mkdirSync(prj.path + "/test/bundle", { recursive: true });
-	}
-
-	var nameList = ["compatible", name];
-	var ret = multiple_spawn.start(nameList, "node", args, { shell: true, keepHistoryConsole: true },
-		function (state) {
-			if (state == "exit") {
-				//copy history to "bundle"
-				var historyCompatible = multiple_spawn.historyConsole(nameList);
-				if (historyCompatible) {
-					multiple_spawn.historyConsole(["bundle", name], historyCompatible);
-				}
-
-				multiple_spawn.remove(nameList);
-
-				responseResultFile(res, prj.path + "/test/bundle/test-bundle-compatible.js");
-				return;
-			}
-		}
-	);
-
-	if (ret instanceof Error) return responseErrorOrData(res, ret || "start compatible bundle fail");
-
-	return true;
+	return runTestBundle(req, res, config, {
+		spawnName: "compatible", outputFileName: "test-bundle-compatible.js",
+		compatibleMode: true,
+	});
 }
 
 var stopBundle = function (req, res, config) {
@@ -365,7 +332,7 @@ function copyBuildScript(req, res, fileName, options) {
 	var sFile = fs.readFileSync(path.join(sourceDir, fileName), 'utf-8');
 
 	if (!options?.copyOnly) {
-		sFile = sFile.replace('var nodeModulesDir = "node_modules"', 'var nodeModulesDir = "' + path.normalize(__dirname + "/../../node_modules").replace(/\\/g, "\\\\") + '"');
+		sFile = sFile.replace('"node_modules"', '"' + path.normalize(__dirname + "/../../node_modules").replace(/\\/g, "\\\\") + '"');
 	}
 
 	//create ./test/build directory
@@ -377,7 +344,7 @@ function copyBuildScript(req, res, fileName, options) {
 }
 
 var createBundleTool = function (req, res, config) {
-	return copyBuildScript(req, res, "watch-test-bundle.js");
+	return copyBuildScript(req, res, "build-test-bundle.js");
 }
 
 var loadPackage = function (req, res, config) {
@@ -407,6 +374,7 @@ var loadPackage = function (req, res, config) {
 	return true;
 }
 
+/*
 var createMiniBundleTool = function (req, res, config) {
 	return copyBuildScript(req, res, "build-main-minimize.js");
 }
@@ -414,6 +382,7 @@ var createMiniBundleTool = function (req, res, config) {
 var createCompatibleTool = function (req, res, config) {
 	return copyBuildScript(req, res, "build-test-compatible.js");
 }
+*/
 
 var createCheckJsCompatible = function (req, res, config) {
 	return copyBuildScript(req, res, "check-js-compatible.js", { copyOnly: true });
@@ -473,11 +442,12 @@ var cmdMap = {
 	"createTestHtm": createTestHtm,
 	"createBundleTool": createBundleTool,
 	"tryMinimizeBundle": tryMinimizeBundle,
-	"createMiniBundleTool": createMiniBundleTool,
+	"tryMiniCompatibleBundle": tryMiniCompatibleBundle,
+	//"createMiniBundleTool": createMiniBundleTool,
 	//"getClientBundle": getClientBundle,
 	"loadPackage": loadPackage,
 	"tryCompatibleBundle": tryCompatibleBundle,
-	"createCompatibleTool": createCompatibleTool,
+	//"createCompatibleTool": createCompatibleTool,
 	"createCheckJsCompatible": createCheckJsCompatible,
 };
 

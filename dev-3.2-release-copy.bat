@@ -16,10 +16,10 @@ xcopy application\client\root\res\*.* %destDir%\application\client\root\res\ /d
 
 xcopy package.json %destDir%\ /d
 xcopy README.md %destDir%\ /d
-xcopy dev-2-server-run.bat %destDir%\ /d
-xcopy dev-2-server-run.sh %destDir%\ /d
-xcopy dev-2-server-run-bundle-minimized.bat %destDir%\ /d
-xcopy dev-2-server-run-bundle-minimized.sh %destDir%\ /d
+xcopy dev-2.1-server-run.bat %destDir%\ /d
+xcopy dev-2.1-server-run.sh %destDir%\ /d
+xcopy dev-2.3-server-run-bundle-minimized.bat %destDir%\ /d
+xcopy dev-2.3-server-run-bundle-minimized.sh %destDir%\ /d
 
 if exist %destDir%\output rmdir /s %destDir%\output
 

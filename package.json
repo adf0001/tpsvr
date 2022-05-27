@@ -1,6 +1,6 @@
 {
   "name": "tpsvr",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "test page server",
   "main": "application/server/tpsvr-main.js",
   "scripts": {

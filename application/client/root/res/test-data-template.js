@@ -14,6 +14,16 @@ module.exports = {
 		));
 	},
 
+	"check exports": function (done) {
+		for (var i in package_name_var) {
+			if (typeof package_name_var[i] === "undefined") {
+				done("undefined: " + i);
+				return;
+			}
+		}
+		done(false);
+	},
+
 };
 
 // for html page

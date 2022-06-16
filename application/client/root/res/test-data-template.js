@@ -21,6 +21,8 @@ module.exports = {
 				return;
 			}
 		}
+		console.log(package_name_var);
+		console.log("export list: " + Object.keys(package_name_var).join(", "));
 		done(false);
 	},
 

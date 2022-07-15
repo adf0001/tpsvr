@@ -70,7 +70,13 @@ var add = function (projectPath, isRestore, reload) {
 	if (!fs.existsSync(projectPath + "/package.json")) return Error("unfound project config");
 
 	var cfg;
-	try { cfg = require(projectPath + "/package.json") } catch (ex) { }
+	try {
+		//cfg = require(projectPath + "/package.json")		//don't use require, for nodejs will cache the module;
+		var s = fs.readFileSync(projectPath + "/package.json");
+		cfg = JSON.parse(s);
+	}
+	catch (ex) { }
+
 	if (!cfg) return Error("fail to load project config");
 
 	var nm = cfg.name, i = 2;

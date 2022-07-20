@@ -549,7 +549,7 @@ module.exports = {
 		ht.prompt("add new project path", "", function (err, data) {
 			if (err || !data) return;
 
-			ht.httpRequestJson("/?cmd=addProject&path=" + data, "GET", "", "",
+			ht.httpRequestJson("/?cmd=addProject&path=" + encodeURIComponent(data), "GET", "", "",
 				function (err, data) {
 					if (err) { ht.show_log(err.responseText || err); return; }
 				}

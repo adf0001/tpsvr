@@ -16,14 +16,14 @@ module.exports = {
 
 	"check exports": function (done) {
 		for (var i in package_name_var) {
-			if (typeof package_name_var[i] === "undefined") {
-				done("undefined: " + i);
-				return;
-			}
+			if (typeof package_name_var[i] === "undefined") { done("undefined: " + i); return; }
 		}
-		console.log(package_name_var);
-		console.log("export list: " + Object.keys(package_name_var).join(", "));
 		done(false);
+
+		console.log(package_name_var);
+		var list = "export list: " + Object.keys(package_name_var).join(", ");
+		console.log(list);
+		return list;
 	},
 
 };

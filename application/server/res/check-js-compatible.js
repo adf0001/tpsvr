@@ -7,6 +7,7 @@
 	b = `c=
 		${c}`;	// template literals
 	b = a?.b?.c;	// optional chaining
+	a = { b, ...a };	// spread syntax
 
 	if (!Object.assign) throw "!Object.assign";	// Object.assign
 })();

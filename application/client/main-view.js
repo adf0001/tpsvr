@@ -1,9 +1,19 @@
 
-var ht = require("htm-tool");
 var to_px_by_offset = require("to-px-by-offset");
 var explore_package = require("./explore-package.js");
 
 var package_json_data_set = require("package-json-data-set");
+
+var show_log = require("show-log-tool");
+var radio_group = require("radio-group-tool");
+var { requestJson: httpRequestJson, requestText: httpRequestText } = require("browser-http-request");
+var width_splitter = require("width-splitter");
+var popup = require("light-popup");
+var { dirPart } = require("path-tool");
+var bind_ui = require("bind-ui");
+var { append: appendHtml } = require("insert-adjacent-return");
+
+require("htm-tool-css");	//css
 
 module.exports = {
 	config: {
@@ -33,14 +43,14 @@ module.exports = {
 	init: function (el) {
 		var _this = this;
 
-		ht.ui.radio_group(this.nme("top-bar.view-type"));
+		radio_group(this.nme("top-bar.view-type"));
 
 		//offset splitter left half width
 		var elSplitter = this.nme('splitter');
 		to_px_by_offset.left(elSplitter);
 		elSplitter.style.left = Math.round(parseInt(elSplitter.style.left) - (elSplitter.offsetWidth / 2)) + "px";
 
-		ht.ui.width_splitter(elSplitter, this.nme('project-list'), null,
+		width_splitter(elSplitter, this.nme('project-list'), null,
 			[this.nme('top-bar'), this.nme('iframe-page').parentNode, this.nme('iframe-mask')], null,
 			{
 				min: 50,
@@ -55,7 +65,7 @@ module.exports = {
 		window.addEventListener('resize', this.onTopbarResize.bind(this));
 		this.onTopbarResize();
 
-		ht.httpRequestJson("/?cmd=listProject", "GET", "", "",
+		httpRequestJson("/?cmd=listProject", "GET", "", "",
 			function (err, data) {
 				if (err) { _this.nme("project-list.list").innerHTML = JSON.stringify(err); return; }
 				_this.projectData = data.responseJson;
@@ -98,7 +108,7 @@ module.exports = {
 	},
 
 	getViewType: function () {
-		return ht.ui.radio_group.getValue(this.nme("top-bar.view-type"));
+		return radio_group.getValue(this.nme("top-bar.view-type"));
 	},
 
 	lastFrameUrl: "",
@@ -190,9 +200,9 @@ module.exports = {
 		var path = this.projectData[name].path + url.slice(url.indexOf("/*/") + 2).replace(/package\.json$/, "");
 		//console.log(path);
 
-		ht.httpRequestJson("/?cmd=addProject&path=" + encodeURIComponent(path), "GET", "", "",
+		httpRequestJson("/?cmd=addProject&path=" + encodeURIComponent(path), "GET", "", "",
 			function (err, data) {
-				if (err) { ht.show_log(err.responseText || err); return; }
+				if (err) { show_log(err.responseText || err); return; }
 			}
 		);
 		//this.nme("top-bar.add-package").style.display = "none";	//behaviour is somehow strange
@@ -220,12 +230,12 @@ module.exports = {
 		this.nme("top-bar.operate.bundle").checked = !chk;	//reset, wait state change
 		var name = this.lastSelected.textContent;
 
-		ht.httpRequestJson(
+		httpRequestJson(
 			"/?cmd=" + (chk ? "startBundle" : "stopBundle") + "&project=" + encodeURIComponent(name),
 			"GET", "", "",
 			function (err, data) {
 				//console.log(err, data);
-				if (err) ht.show_log(err.responseText || err);
+				if (err) show_log(err.responseText || err);
 			}
 		);
 	},
@@ -244,7 +254,7 @@ module.exports = {
 			? encodeURIComponent(JSON.stringify(longPoll.lastState.version))
 			: "";
 
-		var xq = longPoll.xhr = ht.httpRequest(
+		var xq = longPoll.xhr = httpRequestText(
 			"/?cmd=getLongPollState&" + (state_version ? ("state_version=" + state_version) : "current=1"),
 			"GET", "", "",
 			function (err, data) {
@@ -256,7 +266,7 @@ module.exports = {
 
 				if (err || !data.responseText || !data.responseText.match(/^\/+\s+/)) {
 					if (err && err.status !== 0) {
-						ht.show_log("long poll state fail, " + err);
+						show_log("long poll state fail, " + err);
 						longPoll.lastState = null;
 						longPoll.errorCount++;
 					}
@@ -342,12 +352,12 @@ module.exports = {
 		else if (!el && state) {
 			//console.log("add single project");
 			var _this = this;
-			ht.httpRequestJson("/?cmd=listProject&project=" + name, "GET", "", "",
+			httpRequestJson("/?cmd=listProject&project=" + name, "GET", "", "",
 				function (err, data) {
-					if (err) { ht.show_log(err.responseText || err); return; }
+					if (err) { show_log(err.responseText || err); return; }
 					_this.projectData[name] = data.responseJson;
 					var elList = _this.nme("project-list.list");
-					ht.appendHtml(elList,
+					appendHtml(elList,
 						(elList.firstChild ? "<br>" : "") +		//add <br> if list already has children
 						"<span class='ht cmd' name=\"" + name + "\">" + name + "</span>"
 					);
@@ -371,26 +381,28 @@ module.exports = {
 		var shExt = this.lastState.data.sys.platform;
 		shExt = (shExt && shExt.match(/^win/i)) ? "bat" : "sh";
 
-		var el = ht.ui.selectButtonList("Project operations",
-			[
-				["createTestData", "<div style='text-align:left;' title='create test code, required.'>Create file 'test-data.js'</div>"],
-				["createBundleTool", "<div style='text-align:left;' title='create test module bundle tool, optional.'>Create file 'build-test-bundle.js' (optional)</div>"],
-				["createTestHtm", "<div style='text-align:left;' title='create test page, optional.'>Create file 'test.htm' (optional)</div>"],
-				["createCheckJsCompatible", "<div style='text-align:left;' title='create check js compatible script, optional.'>Create file 'check-js-compatible.js' (optional)</div>"],
-				"-",
-				["tryCompatibleBundle", "<div style='text-align:left;' title='try bundling compatible module.'>Try compatible bundle</div>"],
-				//["createCompatibleTool", "<div style='text-align:left;' title='create test compatible bundle tool, optional.'>Create file 'build-test-compatible.js' (optional)</div>"],
-				//"-",
-				["tryMinimizeBundle", "<div style='text-align:left;' title='try bundling only main module, and minimize it.'>Try main minimize bundle</div>"],
-				["tryMiniCompatibleBundle", "<div style='text-align:left;' title='try bundling only main compatible module, and minimize it.'>Try main mini+compatible bundle</div>"],
-				//["createMiniBundleTool", "<div style='text-align:left;' title='create main module minimize bundle tool, optional.'>Create file 'build-main-minimize.js' (optional)</div>"],
+		var el = popup.selectButtonList("Project operations",
+			{
+				itemList: [
+					["createTestData", "<div style='text-align:left;' title='create test code, required.'>Create file 'test-data.js'</div>"],
+					["createBundleTool", "<div style='text-align:left;' title='create test module bundle tool, optional.'>Create file 'build-test-bundle.js' (optional)</div>"],
+					["createTestHtm", "<div style='text-align:left;' title='create test page, optional.'>Create file 'test.htm' (optional)</div>"],
+					["createCheckJsCompatible", "<div style='text-align:left;' title='create check js compatible script, optional.'>Create file 'check-js-compatible.js' (optional)</div>"],
+					"-",
+					["tryCompatibleBundle", "<div style='text-align:left;' title='try bundling compatible module.'>Try compatible bundle</div>"],
+					//["createCompatibleTool", "<div style='text-align:left;' title='create test compatible bundle tool, optional.'>Create file 'build-test-compatible.js' (optional)</div>"],
+					//"-",
+					["tryMinimizeBundle", "<div style='text-align:left;' title='try bundling only main module, and minimize it.'>Try main minimize bundle</div>"],
+					["tryMiniCompatibleBundle", "<div style='text-align:left;' title='try bundling only main compatible module, and minimize it.'>Try main mini+compatible bundle</div>"],
+					//["createMiniBundleTool", "<div style='text-align:left;' title='create main module minimize bundle tool, optional.'>Create file 'build-main-minimize.js' (optional)</div>"],
 
-			],
-			{ maxHeight: "15em", },
-			function (err, data) {
-				if (!data) return;
+				],
+				maxHeight: "15em",
+				cb: function (err, data) {
+					if (!data) return;
 
-				if (_this[data]) _this[data]();
+					if (_this[data]) _this[data]();
+				}
 			}
 		)
 	},
@@ -399,13 +411,13 @@ module.exports = {
 		var name = (this.lastSelected && this.lastSelected.getAttribute("name")) || "";
 		if (!name) { this.unselectProject(); return; }
 
-		ht.httpRequestJson("/?cmd=" + cmd + "&project=" + name, "GET", "", "",
+		httpRequestJson("/?cmd=" + cmd + "&project=" + name, "GET", "", "",
 			function (err, data) {
-				if (err) { ht.show_log(err.responseText || err); return; }
+				if (err) { show_log(err.responseText || err); return; }
 
 				var msg = data.responseJson;
 				if (typeof msg !== "string") msg = JSON.stringify(msg, null, "\t");
-				ht.alert(msg.replace(/[\n\r]+/g, "<br>"), false);
+				popup.alert(msg.replace(/[\n\r]+/g, "<br>"), false);
 			}
 		);
 	},
@@ -434,18 +446,20 @@ module.exports = {
 		];
 
 		var _this = this;
-		ht.ui.selectButtonList("Projects tool",
-			a,
-			function (err, data) {
-				if (!data) return;
+		popup.selectButtonList("Projects tool",
+			{
+				itemList: a,
+				cb: function (err, data) {
+					if (!data) return;
 
-				/*
-				if (data === "addProject") _this.addProject();
-				else if (data === "removeProject") _this.removeProject();
-				else if (data === "exploreProject") _this.exploreProject();
-				*/
+					/*
+					if (data === "addProject") _this.addProject();
+					else if (data === "removeProject") _this.removeProject();
+					else if (data === "exploreProject") _this.exploreProject();
+					*/
 
-				if (_this[data]) _this[data]();
+					if (_this[data]) _this[data]();
+				}
 			}
 		)
 	},
@@ -455,13 +469,13 @@ module.exports = {
 	packageDataset: null,
 
 	loadPackage: function (pathFrom, name, cb) {
-		ht.httpRequestJson("/?cmd=loadPackage&name=" + encodeURIComponent(name) +
+		httpRequestJson("/?cmd=loadPackage&name=" + encodeURIComponent(name) +
 			"&path=" + encodeURIComponent(pathFrom), "GET", "", "",
 			function (err, data) {
-				if (err) { ht.show_log(err.responseText || err); cb(err); return; }
+				if (err) { show_log(err.responseText || err); cb(err); return; }
 
 				var packagePath = decodeURIComponent(data.headers["package-path"]);
-				packagePath = ht.dirPart(packagePath, true);
+				packagePath = dirPart(packagePath, true);
 				//console.log(packagePath);
 
 				cb(null, { path: packagePath, pkg: data.responseJson });
@@ -474,7 +488,7 @@ module.exports = {
 
 		var el = this.nme(".package-view");
 		if (!this.explorePackageView) {
-			el.innerHTML = "<div class='ht popup-body' style='min-width:30em;min-height:15em;'></div>";
+			el.innerHTML = "<div class='light-popup-body' style='min-width:30em;min-height:15em;'></div>";
 			this.explorePackageView = new explore_package.class(el.firstChild);
 
 			var _this = this;
@@ -486,7 +500,7 @@ module.exports = {
 					if (!url) return;
 
 					if (_this.getViewType() === "browse") {
-						ht.ui.radio_group.setValue(_this.nme("top-bar.view-type"), "browse");
+						radio_group.setValue(_this.nme("top-bar.view-type"), "browse");
 					}
 
 					setTimeout(function () { _this.nme(".iframe-page").src = url; }, 200);
@@ -507,7 +521,7 @@ module.exports = {
 		}
 
 
-		ht.popup.show(el, this.explorePackageView.popupOptions);
+		popup.show(el, this.explorePackageView.popupOptions);
 	},
 
 	unselectProject: function () {
@@ -523,37 +537,41 @@ module.exports = {
 		var name = (this.lastSelected && this.lastSelected.getAttribute("name")) || "";
 		if (!name) { this.unselectProject(); return; }
 
-		ht.confirm("detach project '" + name + "'?", function (err, data) {
-			if (err || !data) return;
+		popup.confirm("detach project '" + name + "'?", {
+			cb: function (err, data) {
+				if (err || !data) return;
 
-			//remove project by 'name' not 'path'
-			ht.httpRequestJson("/?cmd=removeProject&name=" + name, "GET", "", "",
-				function (err, data) {
-					if (err) { ht.show_log(err.responseText || err); return; }
-				}
-			);
+				//remove project by 'name' not 'path'
+				httpRequestJson("/?cmd=removeProject&name=" + name, "GET", "", "",
+					function (err, data) {
+						if (err) { show_log(err.responseText || err); return; }
+					}
+				);
+			}
 		});
 
 	},
 
 	reloadProject: function () {
-		ht.httpRequestJson("/?cmd=reloadProject", "GET", "", "",
+		httpRequestJson("/?cmd=reloadProject", "GET", "", "",
 			function (err, data) {
-				if (err) { ht.show_log(err.responseText || err); return; }
+				if (err) { show_log(err.responseText || err); return; }
 				window.location.reload();
 			}
 		);
 	},
 
 	addProject: function () {
-		ht.prompt("add new project path", "", function (err, data) {
-			if (err || !data) return;
+		popup.prompt("add new project path", "", {
+			cb: function (err, data) {
+				if (err || !data) return;
 
-			ht.httpRequestJson("/?cmd=addProject&path=" + encodeURIComponent(data), "GET", "", "",
-				function (err, data) {
-					if (err) { ht.show_log(err.responseText || err); return; }
-				}
-			);
+				httpRequestJson("/?cmd=addProject&path=" + encodeURIComponent(data), "GET", "", "",
+					function (err, data) {
+						if (err) { show_log(err.responseText || err); return; }
+					}
+				);
+			}
 		});
 
 	},
@@ -561,5 +579,5 @@ module.exports = {
 };
 
 module.exports.class = function (el, cb) {
-	return ht.bindUi(el, Object.create(module.exports), null, cb);
+	return bind_ui(el, Object.create(module.exports), null, cb);
 }

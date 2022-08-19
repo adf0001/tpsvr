@@ -21,7 +21,7 @@ process.argv.forEach((v, i, a) => {
 var files = [
 	[projectDir + "/package.json", "_package_json"],
 	[projectDir + "/application/client/main-view.js", "main-view"],
-	[projectDir + "/node_modules/htm-tool", "htm-tool"],
+	//[projectDir + "/node_modules/htm-tool", "htm-tool"],
 ];
 
 var outputFile = projectDir + "/application/client/root/" + outputFileName;

@@ -15,13 +15,14 @@ module.exports = {
 	},
 
 	"check exports": function (done) {
-		for (var i in package_name_var) {
-			if (typeof package_name_var[i] === "undefined") { done("undefined: " + i); return; }
+		var m= package_name_var;
+		for (var i in m) {
+			if (typeof m[i] === "undefined") { done("undefined: " + i); return; }
 		}
 		done(false);
 
-		console.log(package_name_var);
-		var list = "export list: " + Object.keys(package_name_var).join(", ");
+		console.log(m);
+		var list = "export list: " + Object.keys(m).join(", ");
 		console.log(list);
 		return list;
 	},

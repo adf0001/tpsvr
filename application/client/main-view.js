@@ -562,7 +562,7 @@ module.exports = {
 	},
 
 	addProject: function () {
-		popup.prompt("add new project path", "", {
+		popup.prompt("add new project path", {
 			cb: function (err, data) {
 				if (err || !data) return;
 

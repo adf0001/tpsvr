@@ -50,6 +50,7 @@
     "package-json-version-tool": "^1.0.2",
     "path-tool": "^1.0.4",
     "radio-group-tool": "^1.0.2",
+    "replace-file-by-list": "^1.0.2",
     "response-long-poll-state": "^1.0.4",
     "response-tool": "^1.0.4",
     "show-log-tool": "^1.0.1",

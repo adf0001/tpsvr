@@ -10,6 +10,9 @@ var nodeModulesDir = __dirname + "/../node_modules";
 var replaceList = [
 	"bundle-collapser/lib/replace.js", [
 		"ecmaVersion: 8,", "ecmaVersion: 2020,"
+	],
+	"supervisor/lib/supervisor.js", [
+		"spawn(exec, prog, {stdio: 'inherit'})", "spawn(exec, prog, {stdio: 'inherit', windowsHide: true})"
 	]
 ];
 
@@ -62,5 +65,5 @@ for (i = 0; i < imax; i++) {
 if (fn) saveCode(fn, code0, code);
 
 //final message
-if (updateCount > 0) console.log("\ndirectory /node_modules/ has been updated, try 'npm i'.");
+if (updateCount > 0) console.log("\ndirectory /node_modules/ has been updated, try 'npm i' if any package.json was changed.");
 else console.log("\nnothing updated");

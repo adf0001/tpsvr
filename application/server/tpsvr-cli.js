@@ -117,7 +117,14 @@ cq(null, [
 				'http://' + ip + ":" + cfg.http_port + '/?cmd=stopTpsvr',
 				{ method: "GET", timeout: 1000 }, "", null,
 				function (err, data) {
-					console.log(err ? err.responseText : (data && data.responseText));
+					if (err) {
+						if (err.responseText) console.log(err.responseText);
+						else if (err.message?.indexOf?.("ECONNREFUSED") >= 0) {
+							console.log("no start, at " + ip + ":" + cfg.http_port);
+						}
+						else console.log(err);
+					}
+					else console.log(data?.responseText || data);
 
 					que.final(err, data, "exit-forcely");
 				}
@@ -185,13 +192,16 @@ cq(null, [
 				if (background) {
 					console.log("to start tpsvr in background");
 
-					//child_process.spawn("cmd", ["/c", /*"start", " ", "/b",*/ __dirname + "/../node_modules/.bin/supervisor"]
-					//	.concat(startArgs), { detached: true, windowsHide: true, });
+					var args = [
+						path.join(__dirname, "/../../node_modules/supervisor/lib/cli-wrapper.js"),
+						...startArgs
+					];
 
-					//https://github.com/nodejs/node/issues/21825			//2022-1-3
-
-					child_process.spawn("cscript.exe", [__dirname + "/../bin/windows-start-background.vbs", bundleVer],
-						{ cwd: __dirname + "/../bin/", detached: true, windowsHide: true });
+					var child = child_process.spawn(
+						"node", args,
+						{ detached: true, windowsHide: true, shell: false, stdio: 'ignore' }
+					);
+					child.unref();		//refer nodejs spawn/options.detached
 				}
 				else {
 					console.log("to start tpsvr in foreground");

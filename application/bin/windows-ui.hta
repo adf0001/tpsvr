@@ -1,26 +1,34 @@
 ﻿<!DOCTYPE html>
 <html>
+
 <head>
 	<meta charset="utf-8" />
+	<meta http-equiv="x-ua-compatible" content="ie=9,edge,chrome=1">
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 	<title>tpsvr ui tool for windows</title>
 	<script>
+		if (typeof module === "undefined") module = {};	//a fake module to load config
 
-		function startService(file) {
+		function startService() {
 			var shell = new ActiveXObject('WScript.Shell');
-			shell.Run('cmd /c ' + file + " " + selBundle.value, chkBackground.checked ? 0 : 1);
+			shell.Run('cmd /c node cmd.js '
+				+ (selBundle.value ? ("--bundle " + selBundle.value + " ") : "")
+				+ "--start" + (chkBackground.checked ? "" : " f")
+			);
 			shell = null;
 
 			window.setTimeout(checkService, 2000);
-			//window.setTimeout(checkService, 5000);
-			//window.setTimeout(checkService, 8000);
+		}
+
+		function getAddr() {
+			return inpIp.value + ":" + inpPort.value;
 		}
 
 		function stopService() {
 			try {
 				var xq = window.ActiveXObject ? (new ActiveXObject("Msxml2.XMLHTTP")) : (new XMLHttpRequest());
 
-				xq.open("GET", "http://127.0.0.1:8060/?cmd=stopTpsvr&tm=" + (new Date()).getTime(), false);
+				xq.open("GET", "http://" + getAddr() + "/?cmd=stopTpsvr&tm=" + (new Date()).getTime(), false);
 				xq.send(null);
 
 				var s = "" + xq.responseText;
@@ -43,7 +51,7 @@
 			try {
 				var xq = window.ActiveXObject ? (new ActiveXObject("Msxml2.XMLHTTP")) : (new XMLHttpRequest());
 
-				xq.open("GET", "http://127.0.0.1:8060/?cmd=getVersion&tm=" + (new Date()).getTime(), true);
+				xq.open("GET", "http://" + getAddr() + "/?cmd=getVersion&tm=" + (new Date()).getTime(), true);
 
 				xq.onreadystatechange = function () {
 					if (xq.readyState != 4) return;
@@ -71,11 +79,11 @@
 
 		function onCheckService(exist, msg) {
 			if (exist) {
-				msg=msg||"";
-				if(msg){
-					var sa=msg.split(/,\s*/);
-					msg="v"+sa[1];
-					if(sa[2].indexOf("cwd")<0 ) msg+=", " + sa[2];
+				msg = msg || "";
+				if (msg) {
+					var sa = msg.split(/,\s*/);
+					msg = "v" + sa[1];
+					if (sa[2].indexOf("cwd") < 0) msg += ", " + sa[2];
 				}
 
 				var dt = new Date();
@@ -93,30 +101,47 @@
 
 		function onBodyLoad() {
 			window.resizeTo(400, 500);
-			chkBackground.checked=false;
+			chkBackground.checked = false;
+
+			inpIp.value = (module && module.exports && module.exports.http_ip) || "127.0.0.1";
+			inpPort.value = (module && module.exports && module.exports.http_port) || 8060;
 
 			checkService();
 		}
 
 	</script>
-
+	<script src="../server/tpsvr-config.js"></script>
+	<style>
+		.lineInput {
+			font-size: 9pt;
+			border: none;
+			border-bottom: 1px solid black;
+			text-align: center;
+		}
+	</style>
 </head>
 
 <body onload="onBodyLoad()">
 	<center>
 		<br />
 		<br />
+		<div style='font-size:9pt;text-align:center;'>
+			地址 <input id=inpIp class="lineInput" style='width:8em;' />
+			: <input id=inpPort class="lineInput" style='width:3em;' />
+		</div>
+		<br />
+		<br />
 		<button id="cmdCheck" onclick="checkService()" style="width:200px;">Check / 检测状态</button>
 		<div id="divInfo" style="font-size:9pt;">&nbsp;</div>
 		<br />
-		<button id="cmdStart64" onclick="startService('windows-start.bat')" style="width:200px;">Start / 启动服务</button>
+		<button id="cmdStart64" onclick="startService()" style="width:200px;">Start / 启动服务</button>
 		<br />
 		<label style="font-size:9pt;"><input type=checkbox id=chkBackground></input> Background / 后台</label>
-		&nbsp; &nbsp; 
+		&nbsp; &nbsp;
 		<select id="selBundle" value="" style="font-size:9pt;margin-top:0.1em;">
 			<option value="" title="run main source">default</option>
-			<option value=".bundle" title="run main bundle">bundle</option>
-			<option value=".bundle.minimized" title="run main minimized bundle">minimized</option>
+			<option value=" " title="run main bundle">bundle</option>
+			<option value="minimized" title="run main minimized bundle">minimized</option>
 		</select>
 		<br />
 		<br />
